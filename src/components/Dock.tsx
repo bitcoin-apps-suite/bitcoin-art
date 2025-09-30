@@ -50,12 +50,11 @@ const Dock: React.FC = () => {
 
   const getIconColor = (colorClass: string): string => {
     const colorMap: { [key: string]: string } = {
-      'text-purple-500': '#a855f7',
+      'text-purple-500': '#8b5cf6',
       'text-art-purple': '#8b5cf6',
       'text-bitcoin-purple': '#8b5cf6',
       'text-yellow-500': '#eab308',
       'text-red-500': '#ef4444',
-      'text-purple-500': '#a855f7',
       'text-fuchsia-500': '#d946ef',
       'text-green-500': '#22c55e',
       'text-blue-500': '#3b82f6',
