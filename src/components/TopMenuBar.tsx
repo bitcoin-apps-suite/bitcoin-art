@@ -26,6 +26,8 @@ interface TopMenuBarProps {
 export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [showBAppsMenu, setShowBAppsMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const bitcoinApps = [
@@ -56,13 +58,21 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
       items: [
         { 
           label: 'About Bitcoin Art', 
-          action: () => alert('Bitcoin Art v1.0\n\nThe Digital Art Platform for Bitcoin\n\n© 2025 The Bitcoin Corporation LTD\nRegistered in England and Wales • Company No. 16735102') 
+          action: () => alert('Bitcoin Art v1.0\n\nCreate, collect, and trade digital art NFTs on Bitcoin\n\n© 2025 The Bitcoin Corporation LTD\nRegistered in England and Wales • Company No. 16735102') 
+        },
+        { 
+          label: 'Features', 
+          action: () => onOpenApp?.('features')
         },
         { divider: true },
         { 
           label: 'System Preferences', 
           shortcut: '⌘,',
           action: () => onOpenApp?.('Settings')
+        },
+        { 
+          label: 'Authentication Settings', 
+          action: () => console.log('Auth Settings')
         },
         { divider: true },
         { 
@@ -155,6 +165,188 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
       ]
     },
     {
+      label: 'Art',
+      items: [
+        { 
+          label: 'New Canvas', 
+          shortcut: '⌘N',
+          action: () => onOpenApp?.('studio')
+        },
+        { 
+          label: 'Open Artwork...', 
+          shortcut: '⌘O',
+          action: () => console.log('Open Artwork')
+        },
+        { 
+          label: 'Import Image...', 
+          shortcut: '⌘I',
+          action: () => console.log('Import Image')
+        },
+        { divider: true },
+        { 
+          label: 'Gallery View', 
+          action: () => onOpenApp?.('gallery')
+        },
+        { 
+          label: 'My Collections', 
+          action: () => console.log('My Collections')
+        },
+        { 
+          label: 'Art Studio', 
+          action: () => onOpenApp?.('studio')
+        },
+        { divider: true },
+        { 
+          label: 'Export as PNG', 
+          action: () => console.log('Export PNG')
+        },
+        { 
+          label: 'Export as SVG', 
+          action: () => console.log('Export SVG')
+        },
+        { 
+          label: 'Export as GIF', 
+          action: () => console.log('Export GIF')
+        }
+      ]
+    },
+    {
+      label: 'NFT',
+      items: [
+        { 
+          label: 'Mint Art as NFT', 
+          shortcut: '⌥⌘N',
+          action: () => console.log('Mint NFT')
+        },
+        { 
+          label: 'Create Art Collection', 
+          action: () => console.log('Create Collection')
+        },
+        { divider: true },
+        { 
+          label: 'Set Royalties', 
+          action: () => console.log('Set Royalties')
+        },
+        { 
+          label: 'Configure Revenue Splits', 
+          action: () => console.log('Configure Splits')
+        },
+        { 
+          label: 'License Settings', 
+          action: () => console.log('License Settings')
+        },
+        { divider: true },
+        { 
+          label: 'My Art NFTs', 
+          action: () => onOpenApp?.('gallery')
+        },
+        { 
+          label: 'Art Marketplace', 
+          action: () => onOpenApp?.('marketplace')
+        },
+        { 
+          label: 'Trading History', 
+          action: () => console.log('Trading History')
+        }
+      ]
+    },
+    {
+      label: 'Blockchain',
+      items: [
+        { 
+          label: 'Register Copyright', 
+          action: () => console.log('Register Copyright')
+        },
+        { 
+          label: 'Timestamp Creation', 
+          action: () => console.log('Timestamp on Chain')
+        },
+        { divider: true },
+        { 
+          label: 'Encrypt Artwork', 
+          shortcut: '⌘L',
+          action: () => console.log('Encrypt Master')
+        },
+        { 
+          label: 'Set Paywall', 
+          action: () => console.log('Set Paywall')
+        },
+        { 
+          label: 'Revenue Share', 
+          action: () => console.log('Setup Revenue Sharing')
+        },
+        { divider: true },
+        { 
+          label: 'Art Exchange', 
+          action: () => {
+            const event = new CustomEvent('openExchange')
+            window.dispatchEvent(event)
+          }
+        },
+        { 
+          label: 'Trading Hub', 
+          action: () => onOpenApp?.('exchange')
+        },
+        { 
+          label: 'Token Information', 
+          action: () => onOpenApp?.('token')
+        },
+        { divider: true },
+        { 
+          label: 'Verify on Chain', 
+          action: () => console.log('Verify')
+        },
+        { 
+          label: 'View on Explorer', 
+          href: 'https://whatsonchain.com',
+          external: true
+        }
+      ]
+    },
+    {
+      label: 'Marketplace',
+      items: [
+        { 
+          label: 'Browse Artworks', 
+          action: () => onOpenApp?.('marketplace')
+        },
+        { 
+          label: 'Featured Collections', 
+          action: () => console.log('Featured Collections')
+        },
+        { 
+          label: 'New Releases', 
+          action: () => console.log('New Releases')
+        },
+        { divider: true },
+        { 
+          label: 'Buy Art', 
+          action: () => onOpenApp?.('marketplace')
+        },
+        { 
+          label: 'Sell Art', 
+          action: () => console.log('Sell Art')
+        },
+        { 
+          label: 'Place Bid', 
+          action: () => console.log('Place Bid')
+        },
+        { divider: true },
+        { 
+          label: 'My Purchases', 
+          action: () => console.log('My Purchases')
+        },
+        { 
+          label: 'My Sales', 
+          action: () => console.log('My Sales')
+        },
+        { 
+          label: 'Watchlist', 
+          action: () => console.log('Watchlist')
+        }
+      ]
+    },
+    {
       label: 'View',
       items: [
         { 
@@ -231,20 +423,37 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
         },
         { divider: true },
         { 
+          label: 'Art Studio', 
+          action: () => onOpenApp?.('studio')
+        },
+        { 
+          label: 'Art Gallery', 
+          action: () => onOpenApp?.('gallery')
+        },
+        { 
+          label: 'Marketplace', 
+          action: () => onOpenApp?.('marketplace')
+        },
+        { 
+          label: 'Art Exchange', 
+          action: () => onOpenApp?.('exchange')
+        },
+        { divider: true },
+        { 
           label: 'Documentation', 
-          action: () => window.location.href = '/docs'
+          href: '/docs'
         },
         { 
           label: 'Tasks', 
-          action: () => window.location.href = '/tasks'
+          href: '/tasks'
         },
         { 
           label: 'Contracts', 
-          action: () => window.location.href = '/contracts'
+          href: '/contracts'
         },
         { 
-          label: 'Token', 
-          action: () => window.location.href = '/token'
+          label: '$bArt Token', 
+          href: '/token'
         }
       ]
     },
@@ -277,10 +486,15 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
   ]
 
   useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    
+    checkMobile();
+    
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setActiveMenu(null)
         setShowBAppsMenu(false)
+        setShowMobileMenu(false)
       }
     }
 
@@ -288,22 +502,27 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
       if (event.key === 'Escape') {
         setActiveMenu(null)
         setShowBAppsMenu(false)
+        setShowMobileMenu(false)
       }
     }
 
+    const handleResize = () => checkMobile();
+
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('resize', handleResize)
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('resize', handleResize)
     }
   }, [])
 
   return (
-    <div ref={menuRef} className="bitcoin-os-taskbar">
+    <div ref={menuRef} className="bitcoin-os-taskbar" style={{ justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
       {/* Bitcoin Logo with BApps Menu */}
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         <button 
           className={`taskbar-logo ${showBAppsMenu ? 'menu-open' : ''}`}
           onClick={() => {
@@ -458,25 +677,152 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
         ))}
       </div>
 
-      {/* Right side - Status */}
-      <div className="taskbar-status">
-        <a 
-          href="https://github.com/bitcoin-apps-suite/bitcoin-art" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="taskbar-link"
-          title="GitHub"
+      {/* Mobile: Center title */}
+      {isMobile && (
+        <div style={{ 
+          fontSize: '14px',
+          fontWeight: '500',
+          color: '#8b5cf6',
+          textAlign: 'center'
+        }}>
+          Bitcoin Art
+        </div>
+      )}
+
+      {/* Mobile Menu Button - Only visible on mobile */}
+      {isMobile && (
+        <button
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+          style={{
+            padding: '0 12px',
+            height: '24px',
+            background: 'transparent',
+            border: 'none',
+            color: '#ffffff',
+            alignItems: 'center',
+            cursor: 'pointer',
+            fontSize: '18px'
+          }}
         >
-          <Github className="taskbar-link-icon" />
-        </a>
-        <a 
-          href="/docs" 
-          className="taskbar-link"
-          title="Documentation"
-        >
-          <BookOpen className="taskbar-link-icon" />
-        </a>
-      </div>
+          {showMobileMenu ? '×' : '☰'}
+        </button>
+      )}
+
+      {/* Right side - Status - Desktop Only */}
+      {!isMobile && (
+        <div className="taskbar-status">
+          <a 
+            href="https://github.com/bitcoin-apps-suite/bitcoin-art" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="taskbar-link"
+            title="GitHub"
+          >
+            <Github className="taskbar-link-icon" />
+          </a>
+          <a 
+            href="/docs" 
+            className="taskbar-link"
+            title="Documentation"
+          >
+            <BookOpen className="taskbar-link-icon" />
+          </a>
+        </div>
+      )}
+
+      {/* Mobile Menu Overlay */}
+      {showMobileMenu && isMobile && (
+        <div style={{
+          position: 'fixed',
+          top: '72px', // Below POC banner (40px) and taskbar (32px)
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(26, 26, 26, 0.98)',
+          backdropFilter: 'blur(20px)',
+          zIndex: 9999,
+          overflowY: 'auto'
+        }}>
+          <div style={{ padding: '16px' }}>
+            {/* Menu Sections */}
+            {menus.map((menu) => (
+              <div key={menu.label} style={{
+                marginBottom: '16px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  padding: '12px',
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#8b5cf6',
+                  borderBottom: '1px solid rgba(139, 92, 246, 0.2)'
+                }}>
+                  {menu.label}
+                </div>
+                <div style={{ padding: '8px' }}>
+                  {menu.items.map((item, index) => (
+                    item.divider ? (
+                      <div 
+                        key={index}
+                        style={{
+                          height: '1px',
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          margin: '8px 0'
+                        }}
+                      />
+                    ) : item.href ? (
+                      <a
+                        key={index}
+                        href={item.href}
+                        target={item.external ? '_blank' : undefined}
+                        rel={item.external ? 'noopener noreferrer' : undefined}
+                        onClick={() => setShowMobileMenu(false)}
+                        style={{
+                          display: 'block',
+                          padding: '10px 12px',
+                          color: '#ffffff',
+                          textDecoration: 'none',
+                          fontSize: '13px',
+                          borderRadius: '4px',
+                          transition: 'background 0.15s ease'
+                        }}
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          item.action?.()
+                          setShowMobileMenu(false)
+                        }}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '10px 12px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#ffffff',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          transition: 'background 0.15s ease'
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    )
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -21,6 +21,7 @@ export default function HomePage() {
   const [isResizing, setIsResizing] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,6 +55,16 @@ export default function HomePage() {
     return () => window.removeEventListener('openExchange', handleOpenExchange);
   }, []);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const renderMainContent = () => {
     switch (currentView) {
       case 'studio':
@@ -72,6 +83,12 @@ export default function HomePage() {
   const handleViewChange = (viewName: string) => {
     if (viewName === 'studio' || viewName === 'marketplace' || viewName === 'gallery' || viewName === 'exchange') {
       setCurrentView(viewName);
+    } else if (viewName === 'token') {
+      window.location.href = '/token';
+    } else if (viewName === 'docs') {
+      window.location.href = '/docs';
+    } else if (viewName === 'features') {
+      window.location.href = '/features';
     }
   };
 
@@ -98,8 +115,8 @@ export default function HomePage() {
       {/* Task Bar below PoC Bar */}
       <TopMenuBar onOpenApp={handleViewChange} />
 
-      {/* Developer Sidebar on the left */}
-      <DevSidebar />
+      {/* Developer Sidebar on the left - Desktop Only */}
+      {!isMobile && <DevSidebar />}
 
       {/* Header */}
       <AppHeader onTitleClick={() => setCurrentView('studio')} />
@@ -111,7 +128,7 @@ export default function HomePage() {
           display: 'flex',
           flex: 1,
           overflow: 'hidden',
-          marginLeft: '50px', // Space for collapsed DevSidebar
+          marginLeft: isMobile ? '0' : '50px', // Space for collapsed DevSidebar on desktop only
         }}
       >
         {/* Sidebar */}
@@ -180,7 +197,7 @@ export default function HomePage() {
         onClick={() => setShowMobileMenu(!showMobileMenu)}
         aria-label="Toggle menu"
         style={{
-          display: 'none',
+          display: isMobile ? 'flex' : 'none',
           position: 'fixed',
           bottom: '20px',
           right: '20px',
