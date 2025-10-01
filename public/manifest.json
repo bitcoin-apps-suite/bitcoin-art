@@ -2,7 +2,7 @@
   "name": "Bitcoin Art Gallery",
   "short_name": "Bitcoin Art",
   "description": "Create, collect, and trade digital art NFTs on Bitcoin",
-  "theme_color": "#ff6b00",
+  "theme_color": "#8b5cf6",
   "background_color": "#0a0a0a",
   "display": "standalone",
   "orientation": "portrait",

@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     creator: "@bitcoinart",
   },
   icons: {
-    icon: "/icon.png",
+    icon: "/bitcoin-art.jpg",
     shortcut: "/favicon.ico",
-    apple: "/apple-icon.png",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
 };

@@ -37,14 +37,22 @@ export default function AppHeader({ onTitleClick }: AppHeaderProps) {
           style={{
             width: '36px',
             height: '36px',
-            background: 'linear-gradient(135deg, #8b5cf6, #c084fc)',
             borderRadius: '8px',
+            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Palette size={20} color="white" />
+          <img 
+            src="/bitcoin-art.jpg" 
+            alt="Bitcoin Art Logo" 
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
         </div>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', margin: 0 }}>
