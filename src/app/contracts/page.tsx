@@ -44,6 +44,7 @@ export default function ContractsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'artist' | 'developer' | 'designer'>('artist');
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   
   // Form state for claim modal
   const [claimForm, setClaimForm] = useState({
@@ -62,8 +63,12 @@ export default function ContractsPage() {
     const handleResize = () => checkMobile();
     window.addEventListener('resize', handleResize);
     
+    // Set loaded after a brief delay to prevent FOUC
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    
     return () => {
       window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -307,7 +312,7 @@ export default function ContractsPage() {
       {/* Developer Sidebar - only on desktop */}
       {!isMobile && <DevSidebar />}
       
-      <div className="contracts-page">
+      <div className={`contracts-page ${isLoaded ? 'loaded' : 'loading'}`}>
         <div className="contracts-container">
           {/* Hero Section */}
           <section className="contracts-hero">
@@ -585,9 +590,20 @@ export default function ContractsPage() {
           padding-top: 96px;
           padding-bottom: 120px;
           font-weight: 300;
-          transition: margin-left 0.3s ease;
+          transition: margin-left 0.3s ease, opacity 0.3s ease;
           margin-left: 260px; /* Account for sidebar */
           overflow-y: auto;
+        }
+
+        /* Prevent FOUC */
+        .contracts-page.loading {
+          opacity: 0;
+          visibility: hidden;
+        }
+
+        .contracts-page.loaded {
+          opacity: 1;
+          visibility: visible;
         }
 
         /* Mobile adjustments */

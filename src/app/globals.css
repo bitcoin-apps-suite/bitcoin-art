@@ -44,6 +44,20 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent FOUC by ensuring background is always set */
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Hide content during initial load to prevent FOUC */
+.loading-initial {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loaded-initial {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Scrollbar styling */

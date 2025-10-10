@@ -9,6 +9,7 @@ import AppHeader from '@/components/AppHeader';
 
 export default function TokenPage() {
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -20,8 +21,12 @@ export default function TokenPage() {
     
     window.addEventListener('resize', handleResize);
     
+    // Set loaded after a brief delay to ensure CSS is applied
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    
     return () => {
       window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -34,7 +39,7 @@ export default function TokenPage() {
       {/* Developer Sidebar - only on desktop */}
       {!isMobile && <DevSidebar />}
       
-      <div className="token-page">
+      <div className={`token-page ${isLoaded ? 'loaded' : 'loading'}`}>
         <div className="token-container">
           {/* Hero Section */}
           <section className="token-hero">
@@ -328,9 +333,20 @@ export default function TokenPage() {
           padding-top: 96px;
           padding-bottom: 120px;
           font-weight: 300;
-          transition: margin-left 0.3s ease;
+          transition: margin-left 0.3s ease, opacity 0.3s ease;
           margin-left: 260px; /* Account for sidebar */
           overflow-y: auto;
+        }
+
+        /* Prevent FOUC */
+        .token-page.loading {
+          opacity: 0;
+          visibility: hidden;
+        }
+
+        .token-page.loaded {
+          opacity: 1;
+          visibility: visible;
         }
 
         /* Adjust for DevSidebar on desktop */
