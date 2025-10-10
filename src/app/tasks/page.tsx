@@ -394,9 +394,9 @@ export default function TasksPage() {
         .tasks-page {
           background: transparent;
           color: #ffffff;
-          min-height: calc(100vh - 96px);
+          min-height: calc(100vh - 128px);
           font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          padding-top: 96px;
+          padding-top: 128px;
           padding-bottom: 120px;
           font-weight: 300;
           transition: margin-left 0.3s ease, opacity 0.3s ease;
