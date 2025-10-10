@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Footer from '@/components/Footer';
+import ProofOfConceptBar from '@/components/ProofOfConceptBar';
+import TopMenuBar from '@/components/TopMenuBar';
+import DevSidebar from '@/components/DevSidebar';
+import AppHeader from '@/components/AppHeader';
 
 export default function TokenPage() {
-  const [devSidebarCollapsed, setDevSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('devSidebarCollapsed');
-      return saved === 'true';
-    }
-    return false;
-  });
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -19,33 +16,25 @@ export default function TokenPage() {
     // Initial check
     checkMobile();
     
-    // Listen for changes
-    const handleStorageChange = () => {
-      const saved = localStorage.getItem('devSidebarCollapsed');
-      setDevSidebarCollapsed(saved === 'true');
-    };
-    
     const handleResize = () => checkMobile();
     
-    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('resize', handleResize);
     
-    // Check for sidebar state changes via polling
-    const checkSidebarState = setInterval(() => {
-      const saved = localStorage.getItem('devSidebarCollapsed');
-      setDevSidebarCollapsed(saved === 'true');
-    }, 100);
-    
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('resize', handleResize);
-      clearInterval(checkSidebarState);
     };
   }, []);
 
   return (
     <div className="App">
-      <div className={`token-page ${!isMobile && !devSidebarCollapsed ? 'with-sidebar-expanded' : ''} ${!isMobile && devSidebarCollapsed ? 'with-sidebar-collapsed' : ''}`}>
+      <ProofOfConceptBar />
+      <TopMenuBar />
+      <AppHeader />
+      
+      {/* Developer Sidebar - only on desktop */}
+      {!isMobile && <DevSidebar />}
+      
+      <div className="token-page">
         <div className="token-container">
           {/* Hero Section */}
           <section className="token-hero">
