@@ -1,523 +1,508 @@
 'use client';
-
-import { useState } from 'react';
-import { X, Mail, Lock, User, Bitcoin, Wallet, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { HandCashService } from '../services/HandCashService';
 
 interface AuthModalProps {
+  isOpen: boolean;
   onClose: () => void;
+  googleUser: any;
+  setGoogleUser: (user: any) => void;
+  isHandCashAuthenticated: boolean;
+  currentHandCashUser: any;
+  handcashService: HandCashService;
+  onHandCashLogin: () => void;
+  onHandCashLogout: () => void;
+  hasTwitter: boolean;
+  onTwitterConnect: () => void;
 }
 
-export default function AuthModal({ onClose }: AuthModalProps) {
-  const [authMode, setAuthMode] = useState<'login' | 'register' | 'wallet'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  onClose,
+  googleUser,
+  setGoogleUser,
+  isHandCashAuthenticated,
+  currentHandCashUser,
+  handcashService,
+  onHandCashLogin,
+  onHandCashLogout,
+  hasTwitter,
+  onTwitterConnect
+}) => {
+  const [activeTab, setActiveTab] = useState<'google' | 'handcash' | 'social'>('google');
+  const [emailForMagicLink, setEmailForMagicLink] = useState('');
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle authentication
-    console.log('Auth submitted:', { authMode, email, password, username });
-    onClose();
+  if (!isOpen) return null;
+
+  const handleGoogleLogin = () => {
+    // Google OAuth logic will be implemented
+    console.log('Google login not yet implemented in Next.js version');
   };
 
-  const handleWalletConnect = (walletType: string) => {
-    console.log('Connecting to wallet:', walletType);
-    // Handle wallet connection
-    onClose();
+  const handleMagicLinkRequest = async () => {
+    try {
+      const result = await handcashService.requestMagicLink(emailForMagicLink);
+      if (result.success) {
+        setMagicLinkSent(true);
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error('Magic link request failed:', error);
+      alert('Failed to send magic link. Please try again.');
+    }
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'google':
+        return (
+          <div className="tab-content">
+            <div className="auth-option">
+              <div className="auth-icon google">G</div>
+              <div className="auth-details">
+                <h3>Google Account</h3>
+                <p>Sign in with your Google account for seamless access</p>
+                {googleUser ? (
+                  <div className="auth-status connected">
+                    <span>✅ Connected as {googleUser.name}</span>
+                    <button 
+                      className="btn-secondary"
+                      onClick={() => {
+                        localStorage.removeItem('googleUser');
+                        setGoogleUser(null);
+                      }}
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <button className="btn-primary" onClick={handleGoogleLogin}>
+                    Sign in with Google
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'handcash':
+        return (
+          <div className="tab-content">
+            <div className="auth-option">
+              <div className="auth-icon handcash">₿</div>
+              <div className="auth-details">
+                <h3>HandCash Wallet</h3>
+                <p>Connect your Bitcoin wallet for payments and earnings</p>
+                {isHandCashAuthenticated ? (
+                  <div className="auth-status connected">
+                    <span>✅ Connected as @{currentHandCashUser?.handle}</span>
+                    <button className="btn-secondary" onClick={onHandCashLogout}>
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <div className="handcash-auth-options">
+                    <button className="btn-primary" onClick={onHandCashLogin}>
+                      Connect HandCash Wallet
+                    </button>
+                    
+                    <div className="magic-link-section">
+                      <h4>Or use Magic Link</h4>
+                      <div className="magic-link-form">
+                        <input
+                          type="email"
+                          placeholder="Enter your email"
+                          value={emailForMagicLink}
+                          onChange={(e) => setEmailForMagicLink(e.target.value)}
+                          disabled={magicLinkSent}
+                        />
+                        <button 
+                          className="btn-secondary"
+                          onClick={handleMagicLinkRequest}
+                          disabled={!emailForMagicLink || magicLinkSent}
+                        >
+                          {magicLinkSent ? 'Link Sent!' : 'Send Magic Link'}
+                        </button>
+                      </div>
+                      {magicLinkSent && (
+                        <p className="magic-link-message">
+                          Check your email for a login link from HandCash
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'social':
+        return (
+          <div className="tab-content">
+            <div className="auth-option">
+              <div className="auth-icon twitter">𝕏</div>
+              <div className="auth-details">
+                <h3>Twitter Integration</h3>
+                <p>Connect Twitter to share your art and engage with collectors</p>
+                {hasTwitter ? (
+                  <div className="auth-status connected">
+                    <span>✅ Twitter Connected</span>
+                    <button className="btn-secondary">
+                      Manage Connection
+                    </button>
+                  </div>
+                ) : (
+                  <button className="btn-primary" onClick={onTwitterConnect}>
+                    Connect Twitter
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className="auth-option">
+              <div className="auth-icon github">📁</div>
+              <div className="auth-details">
+                <h3>GitHub Portfolio</h3>
+                <p>Connect GitHub to showcase your coding art and digital projects</p>
+                <button className="btn-primary" disabled>
+                  Coming Soon
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-      }}
-    >
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(4px)',
-        }}
-      />
-
-      {/* Modal */}
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '480px',
-          background: 'linear-gradient(180deg, #1a1a1a 0%, #141414 100%)',
-          borderRadius: '20px',
-          border: '1px solid rgba(139, 92, 246, 0.3)',
-          padding: '32px',
-          margin: '20px',
-        }}
-      >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            background: 'rgba(139, 92, 246, 0.1)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#8b5cf6',
-          }}
-        >
-          <X size={20} />
-        </button>
-
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              background: 'linear-gradient(135deg, #8b5cf6, #c084fc)',
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}
-          >
-            <User size={32} color="white" />
-          </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>
-            {authMode === 'login' ? 'Welcome Back' : authMode === 'register' ? 'Create Account' : 'Connect Wallet'}
-          </h2>
-          <p style={{ color: '#999', fontSize: '14px' }}>
-            {authMode === 'login'
-              ? 'Sign in to access your art gallery'
-              : authMode === 'register'
-              ? 'Join the Bitcoin Art community'
-              : 'Choose your Bitcoin wallet to connect'}
-          </p>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>🎨 Join Bitcoin Art</h2>
+          <button className="close-btn" onClick={onClose}>×</button>
         </div>
-
-        {/* Auth Mode Tabs */}
-        <div style={{ display: 'flex', marginBottom: '24px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', padding: '4px' }}>
-          <button
-            onClick={() => setAuthMode('login')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: authMode === 'login' ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              color: authMode === 'login' ? '#8b5cf6' : '#999',
-              fontWeight: authMode === 'login' ? 600 : 400,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => setAuthMode('register')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: authMode === 'register' ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              color: authMode === 'register' ? '#8b5cf6' : '#999',
-              fontWeight: authMode === 'register' ? 600 : 400,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            Sign Up
-          </button>
-          <button
-            onClick={() => setAuthMode('wallet')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: authMode === 'wallet' ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              color: authMode === 'wallet' ? '#8b5cf6' : '#999',
-              fontWeight: authMode === 'wallet' ? 600 : 400,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            Wallet
-          </button>
-        </div>
-
-        {/* Form Content */}
-        {authMode !== 'wallet' ? (
-          <form onSubmit={handleSubmit}>
-            {authMode === 'register' && (
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#999', fontSize: '14px' }}>
-                  Username
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User
-                    size={18}
-                    style={{
-                      position: 'absolute',
-                      left: '16px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#666',
-                    }}
-                  />
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Choose a username"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px 12px 48px',
-                      background: 'rgba(139, 92, 246, 0.1)',
-                      border: '2px solid rgba(139, 92, 246, 0.2)',
-                      borderRadius: '10px',
-                      color: 'white',
-                      fontSize: '16px',
-                      outline: 'none',
-                      transition: 'border 0.2s',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.2)';
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#999', fontSize: '14px' }}>
-                Email Address
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail
-                  size={18}
-                  style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#666',
-                  }}
-                />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px 12px 48px',
-                    background: 'rgba(139, 92, 246, 0.1)',
-                    border: '2px solid rgba(139, 92, 246, 0.2)',
-                    borderRadius: '10px',
-                    color: 'white',
-                    fontSize: '16px',
-                    outline: 'none',
-                    transition: 'border 0.2s',
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.2)';
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#999', fontSize: '14px' }}>
-                Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock
-                  size={18}
-                  style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#666',
-                  }}
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={authMode === 'register' ? 'Create a strong password' : 'Enter your password'}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px 12px 48px',
-                    background: 'rgba(139, 92, 246, 0.1)',
-                    border: '2px solid rgba(139, 92, 246, 0.2)',
-                    borderRadius: '10px',
-                    color: 'white',
-                    fontSize: '16px',
-                    outline: 'none',
-                    transition: 'border 0.2s',
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.2)';
-                  }}
-                />
-              </div>
-            </div>
-
-            {authMode === 'login' && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input type="checkbox" />
-                  <span style={{ fontSize: '14px', color: '#999' }}>Remember me</span>
-                </label>
-                <a href="#" style={{ fontSize: '14px', color: '#8b5cf6', textDecoration: 'none' }}>
-                  Forgot password?
-                </a>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #8b5cf6, #c084fc)',
-                border: 'none',
-                borderRadius: '10px',
-                color: 'white',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-              }}
+        
+        <div className="modal-body">
+          <div className="auth-tabs">
+            <button 
+              className={`tab ${activeTab === 'google' ? 'active' : ''}`}
+              onClick={() => setActiveTab('google')}
             >
-              {authMode === 'login' ? 'Sign In' : 'Create Account'}
-              <ArrowRight size={18} />
+              <span className="tab-icon">G</span>
+              Google
             </button>
-          </form>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <button
-              onClick={() => handleWalletConnect('handcash')}
-              style={{
-                width: '100%',
-                padding: '16px',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '2px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '10px',
-                color: 'white',
-                fontSize: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.2)';
-              }}
+            <button 
+              className={`tab ${activeTab === 'handcash' ? 'active' : ''}`}
+              onClick={() => setActiveTab('handcash')}
             >
-              <Wallet size={20} />
+              <span className="tab-icon">₿</span>
               HandCash
             </button>
-            <button
-              onClick={() => handleWalletConnect('relayx')}
-              style={{
-                width: '100%',
-                padding: '16px',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '2px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '10px',
-                color: 'white',
-                fontSize: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.2)';
-              }}
+            <button 
+              className={`tab ${activeTab === 'social' ? 'active' : ''}`}
+              onClick={() => setActiveTab('social')}
             >
-              <Wallet size={20} />
-              RelayX
-            </button>
-            <button
-              onClick={() => handleWalletConnect('twetch')}
-              style={{
-                width: '100%',
-                padding: '16px',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '2px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '10px',
-                color: 'white',
-                fontSize: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.2)';
-              }}
-            >
-              <Wallet size={20} />
-              Twetch
-            </button>
-            <button
-              onClick={() => handleWalletConnect('metamask')}
-              style={{
-                width: '100%',
-                padding: '16px',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '2px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '10px',
-                color: 'white',
-                fontSize: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.2)';
-              }}
-            >
-              <Wallet size={20} />
-              Browser Wallet
+              <span className="tab-icon">🌐</span>
+              Social
             </button>
           </div>
-        )}
-
-        {/* Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(139, 92, 246, 0.2)' }} />
-          <span style={{ padding: '0 16px', color: '#666', fontSize: '14px' }}>OR</span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(139, 92, 246, 0.2)' }} />
+          
+          {renderTabContent()}
+          
+          <div className="auth-benefits">
+            <h4>Why connect your accounts?</h4>
+            <ul>
+              <li>🎨 Create and showcase your art portfolio</li>
+              <li>💰 Earn Bitcoin from art sales and commissions</li>
+              <li>🔒 Secure your intellectual property on blockchain</li>
+              <li>📈 Issue dividend-bearing shares in your artwork</li>
+              <li>🤝 Connect with clients and other artists</li>
+              <li>🌍 Share your work across social platforms</li>
+            </ul>
+          </div>
         </div>
-
-        {/* Alternative Auth */}
-        <button
-          onClick={() => setAuthMode(authMode === 'wallet' ? 'login' : 'wallet')}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: 'transparent',
-            border: '2px solid rgba(139, 92, 246, 0.3)',
-            borderRadius: '10px',
-            color: '#8b5cf6',
-            fontSize: '16px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-          }}
-        >
-          <Bitcoin size={18} />
-          {authMode === 'wallet' ? 'Use Email Instead' : 'Connect with Bitcoin Wallet'}
-        </button>
-
-        {/* Footer */}
-        <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#666' }}>
-          {authMode === 'login' ? (
-            <>
-              Don't have an account?{' '}
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setAuthMode('register');
-                }}
-                style={{ color: '#8b5cf6', textDecoration: 'none' }}
-              >
-                Sign up
-              </a>
-            </>
-          ) : authMode === 'register' ? (
-            <>
-              Already have an account?{' '}
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setAuthMode('login');
-                }}
-                style={{ color: '#8b5cf6', textDecoration: 'none' }}
-              >
-                Sign in
-              </a>
-            </>
-          ) : (
-            <>
-              By connecting, you agree to our{' '}
-              <a href="#" style={{ color: '#8b5cf6', textDecoration: 'none' }}>
-                Terms
-              </a>{' '}
-              and{' '}
-              <a href="#" style={{ color: '#8b5cf6', textDecoration: 'none' }}>
-                Privacy Policy
-              </a>
-            </>
-          )}
-        </p>
+        
+        <div className="modal-footer">
+          <p className="privacy-note">
+            Your data is secure. We only access what's necessary to provide our services.
+          </p>
+        </div>
       </div>
+      
+      <style jsx>{`
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+        
+        .auth-modal {
+          background: white;
+          border-radius: 16px;
+          max-width: 500px;
+          width: 90%;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+          padding: 24px 24px 16px;
+          border-bottom: 1px solid #eee;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .modal-header h2 {
+          margin: 0;
+          color: #333;
+          font-size: 24px;
+        }
+        
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #666;
+          padding: 4px;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .close-btn:hover {
+          background: #f5f5f5;
+        }
+        
+        .modal-body {
+          padding: 24px;
+        }
+        
+        .auth-tabs {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 24px;
+          border-bottom: 1px solid #eee;
+        }
+        
+        .tab {
+          background: none;
+          border: none;
+          padding: 12px 16px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border-radius: 8px 8px 0 0;
+          transition: all 0.2s;
+          color: #666;
+        }
+        
+        .tab.active {
+          background: #f8f9fa;
+          color: #333;
+          border-bottom: 2px solid #667eea;
+        }
+        
+        .tab-icon {
+          font-weight: bold;
+        }
+        
+        .tab-content {
+          min-height: 200px;
+        }
+        
+        .auth-option {
+          display: flex;
+          gap: 16px;
+          padding: 16px;
+          border: 1px solid #eee;
+          border-radius: 12px;
+          margin-bottom: 16px;
+        }
+        
+        .auth-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+        
+        .auth-icon.google {
+          background: #4285F4;
+          color: white;
+        }
+        
+        .auth-icon.handcash {
+          background: #ff6b6b;
+          color: white;
+        }
+        
+        .auth-icon.twitter {
+          background: #1DA1F2;
+          color: white;
+        }
+        
+        .auth-icon.github {
+          background: #333;
+          color: white;
+        }
+        
+        .auth-details {
+          flex: 1;
+        }
+        
+        .auth-details h3 {
+          margin: 0 0 8px 0;
+          color: #333;
+        }
+        
+        .auth-details p {
+          margin: 0 0 16px 0;
+          color: #666;
+          font-size: 14px;
+        }
+        
+        .auth-status {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .auth-status.connected {
+          color: #28a745;
+          font-weight: 500;
+        }
+        
+        .btn-primary {
+          background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+          border: none;
+          border-radius: 8px;
+          color: white;
+          cursor: pointer;
+          font-weight: 600;
+          padding: 12px 24px;
+          transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          color: #666;
+          cursor: pointer;
+          font-weight: 500;
+          padding: 8px 16px;
+          transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+          background: #f8f9fa;
+          border-color: #ccc;
+        }
+        
+        .handcash-auth-options {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        
+        .magic-link-section h4 {
+          margin: 0 0 8px 0;
+          color: #666;
+          font-size: 14px;
+        }
+        
+        .magic-link-form {
+          display: flex;
+          gap: 8px;
+        }
+        
+        .magic-link-form input {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          font-size: 14px;
+        }
+        
+        .magic-link-message {
+          color: #28a745;
+          font-size: 14px;
+          margin: 8px 0 0 0;
+        }
+        
+        .auth-benefits {
+          background: #f8f9fa;
+          border-radius: 12px;
+          padding: 20px;
+          margin-top: 24px;
+        }
+        
+        .auth-benefits h4 {
+          margin: 0 0 12px 0;
+          color: #333;
+        }
+        
+        .auth-benefits ul {
+          margin: 0;
+          padding-left: 20px;
+        }
+        
+        .auth-benefits li {
+          margin-bottom: 8px;
+          color: #666;
+          font-size: 14px;
+        }
+        
+        .modal-footer {
+          padding: 16px 24px;
+          border-top: 1px solid #eee;
+          background: #f8f9fa;
+        }
+        
+        .privacy-note {
+          margin: 0;
+          font-size: 12px;
+          color: #666;
+          text-align: center;
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default AuthModal;

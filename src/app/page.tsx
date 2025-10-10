@@ -12,6 +12,7 @@ import GalleryView from '@/components/GalleryView';
 import ArtExchangeView from '@/components/ArtExchangeView';
 import AppHeader from '@/components/AppHeader';
 import AuthModal from '@/components/AuthModal';
+import { HandCashService } from '@/services/HandCashService';
 
 type ViewMode = 'studio' | 'marketplace' | 'gallery' | 'exchange';
 
@@ -23,6 +24,12 @@ export default function HomePage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
+
+  // Authentication state
+  const [handcashService] = useState(new HandCashService());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [googleUser, setGoogleUser] = useState<any>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -374,7 +381,25 @@ export default function HomePage() {
       )}
 
       {/* Auth Modal */}
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          googleUser={googleUser}
+          setGoogleUser={setGoogleUser}
+          isHandCashAuthenticated={isAuthenticated}
+          currentHandCashUser={currentUser}
+          handcashService={handcashService}
+          onHandCashLogin={() => handcashService.login()}
+          onHandCashLogout={() => {
+            handcashService.logout();
+            setIsAuthenticated(false);
+            setCurrentUser(null);
+          }}
+          hasTwitter={false}
+          onTwitterConnect={() => console.log('Twitter connect not implemented')}
+        />
+      )}
 
       {/* Floating Dock at the bottom */}
       <Dock />
