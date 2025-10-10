@@ -11,7 +11,10 @@
   font-weight: 400;
   color: rgba(255, 255, 255, 0.9);
   user-select: none;
-  position: relative;
+  position: fixed;
+  top: 40px;
+  left: 0;
+  right: 0;
   z-index: 10000;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
 }

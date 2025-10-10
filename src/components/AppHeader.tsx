@@ -20,7 +20,11 @@ export default function AppHeader({ onTitleClick }: AppHeaderProps) {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 20px',
-        position: 'relative',
+        position: 'fixed',
+        top: '68px',
+        left: '0',
+        right: '0',
+        zIndex: 9999,
       }}
     >
       {/* Logo and Title */}
