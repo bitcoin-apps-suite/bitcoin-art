@@ -9,72 +9,81 @@ import AppHeader from '@/components/AppHeader';
 import Dock from '@/components/Dock';
 import { HandCashService } from '@/services/HandCashService';
 
-interface ArtContract {
-  id: string;
+interface DevelopmentContract {
+  id: number;
+  githubNumber: number;
   title: string;
   description: string;
-  client: string;
   reward: string;
-  estimatedDays: number;
-  priority: 'Urgent' | 'High' | 'Standard' | 'Flexible';
-  status: 'available' | 'claimed' | 'in_progress' | 'review' | 'completed' | 'cancelled';
-  category: 'digital_art' | 'nft_creation' | 'album_cover' | 'portrait' | 'concept_art' | 'logo_design' | 'animation' | 'illustration';
-  medium: 'digital_painting' | '3d_modeling' | 'photography' | 'vector_art' | 'pixel_art' | 'mixed_media';
-  assignee?: {
-    artistName: string;
-    handcashHandle?: string;
-    claimedAt: string;
-    deadline: string;
-    portfolio?: string;
-  };
-  requirements: string[];
+  estimatedHours: string;
+  priority: 'Critical' | 'High' | 'Medium' | 'Low';
+  status: 'open' | 'closed';
+  category: 'Developer' | 'Designer' | 'Artist' | 'Developer/Designer' | 'Developer/Artist';
+  assignee?: { login: string; avatar_url: string };
+  url: string;
+  skills: string[];
   deliverables: string[];
-  artSpecs: {
-    dimensions?: string;
-    format?: string;
-    colorProfile?: string;
-    resolution?: string;
-    style?: string;
-  };
+  acceptanceCriteria: string[];
   createdAt: string;
-  deadline: string;
+  updatedAt: string;
+}
+
+interface GitHubIssue {
+  id: number;
+  number: number;
+  title: string;
+  body: string;
+  state: 'open' | 'closed';
+  assignee?: {
+    login: string;
+    avatar_url: string;
+  };
+  html_url: string;
+  created_at: string;
+  updated_at: string;
+  labels: Array<{
+    name: string;
+    color: string;
+    description?: string;
+  }>;
 }
 
 export default function ContractsPage() {
-  const [contracts, setContracts] = useState<ArtContract[]>([]);
+  const [contracts, setContracts] = useState<DevelopmentContract[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedContract, setSelectedContract] = useState<ArtContract | null>(null);
+  const [selectedContract, setSelectedContract] = useState<DevelopmentContract | null>(null);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [handcashService] = useState(new HandCashService());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'digital_art' | 'nft_creation' | 'commissions'>('digital_art');
+  const [activeTab, setActiveTab] = useState<'development' | 'enhancement' | 'bug'>('development');
   const [isMobile, setIsMobile] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   
-  // Form state for claim modal
-  const [claimForm, setClaimForm] = useState({
-    artistName: '',
-    handcashHandle: '',
-    portfolioUrl: '',
-    estimatedDays: 7
-  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    const checkSidebar = () => {
+      const saved = localStorage.getItem('devSidebarCollapsed');
+      setSidebarCollapsed(saved !== null ? saved === 'true' : true);
+    };
     
     checkMobile();
+    checkSidebar();
     fetchContracts();
     checkAuthentication();
     
     const handleResize = () => checkMobile();
+    const sidebarInterval = setInterval(checkSidebar, 100);
+    
     window.addEventListener('resize', handleResize);
     
-    // Set loaded after a brief delay to prevent FOUC
-    const timer = setTimeout(() => setIsLoaded(true), 100);
+    // Set loaded immediately - no more flash
+    setIsLoaded(true);
     
     return () => {
       window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
+      clearInterval(sidebarInterval);
     };
   }, []);
 
@@ -82,273 +91,83 @@ export default function ContractsPage() {
     setIsAuthenticated(handcashService.isAuthenticated());
   };
 
+  const parseTaskFromIssue = (issue: GitHubIssue): DevelopmentContract => {
+    const lines = issue.body?.split('\n') || [];
+    const taskMatch = lines.find(line => line.startsWith('## Task:'))?.replace('## Task:', '').trim();
+    const rewardMatch = lines.find(line => line.startsWith('## Reward:'))?.replace('## Reward:', '').trim();
+    const estimatedHoursMatch = lines.find(line => line.startsWith('## Estimated Hours:'))?.replace('## Estimated Hours:', '').trim();
+    const skillsMatch = lines.find(line => line.startsWith('## Skills Required:'))?.replace('## Skills Required:', '').trim();
+    
+    // Determine category from labels
+    let category: 'Developer' | 'Designer' | 'Artist' | 'Developer/Designer' | 'Developer/Artist' = 'Developer';
+    if (issue.labels.some(label => label.name.includes('design'))) {
+      category = 'Developer/Designer';
+    } else if (issue.labels.some(label => label.name.includes('art') || label.name.includes('ui'))) {
+      category = 'Developer/Artist';
+    }
+    
+    // Determine priority from labels
+    let priority: 'Critical' | 'High' | 'Medium' | 'Low' = 'Medium';
+    if (issue.labels.some(label => label.name.includes('critical') || label.name.includes('urgent'))) {
+      priority = 'Critical';
+    } else if (issue.labels.some(label => label.name.includes('high'))) {
+      priority = 'High';
+    } else if (issue.labels.some(label => label.name.includes('low'))) {
+      priority = 'Low';
+    }
+    
+    const skills = skillsMatch ? skillsMatch.split(',').map(s => s.trim()) : ['Development'];
+    
+    return {
+      id: issue.id,
+      githubNumber: issue.number,
+      title: issue.title,
+      description: taskMatch || issue.body || 'No description provided',
+      reward: rewardMatch || '5,000,000 $BART',
+      estimatedHours: estimatedHoursMatch || '8-16 hours',
+      priority,
+      status: issue.state,
+      category,
+      assignee: issue.assignee,
+      url: issue.html_url,
+      skills,
+      deliverables: [
+        'Complete implementation of the feature/fix',
+        'Unit tests for new functionality',
+        'Documentation updates if applicable',
+        'Code review and approval from maintainers'
+      ],
+      acceptanceCriteria: [
+        'All requirements specified in the issue are met',
+        'Code follows project coding standards',
+        'Tests pass and coverage is maintained',
+        'No breaking changes unless explicitly required'
+      ],
+      createdAt: issue.created_at,
+      updatedAt: issue.updated_at
+    };
+  };
+
   const fetchContracts = async () => {
     try {
-      // For now, use sample art contracts data
-      // In production, this would fetch from a dedicated art contracts API
-      const sampleContracts: ArtContract[] = [
-        {
-          id: '1',
-          title: 'Bitcoin Art Logo Redesign',
-          description: 'Create a modern, vibrant logo for Bitcoin Art platform that captures the essence of digital creativity and blockchain innovation.',
-          client: 'Bitcoin Art Platform',
-          reward: '50,000 $BART',
-          estimatedDays: 5,
-          priority: 'High',
-          status: 'available',
-          category: 'logo_design',
-          medium: 'vector_art',
-          requirements: [
-            'Modern and professional design',
-            'Scalable vector format',
-            'Works in both light and dark themes',
-            'Incorporates Bitcoin and art elements'
-          ],
-          deliverables: [
-            'Final logo in SVG, PNG, and PDF formats',
-            'Logo variations (horizontal, vertical, icon-only)',
-            'Brand guidelines document',
-            'Color palette specifications'
-          ],
-          artSpecs: {
-            format: 'SVG, PNG, PDF',
-            style: 'Modern, minimalist',
-            colorProfile: 'RGB/CMYK'
-          },
-          createdAt: '2025-10-10T10:00:00Z',
-          deadline: '2025-10-20T23:59:59Z'
-        },
-        {
-          id: '2',
-          title: 'Abstract Digital Art Series',
-          description: 'Create a collection of 10 abstract digital artworks exploring themes of decentralization, freedom, and digital transformation.',
-          client: 'CryptoCollector_47',
-          reward: '150,000 $BART',
-          estimatedDays: 14,
-          priority: 'Standard',
-          status: 'available',
-          category: 'digital_art',
-          medium: 'digital_painting',
-          requirements: [
-            'Abstract style with bold colors',
-            'Each piece should be unique but cohesive',
-            'High resolution for printing',
-            'Crypto/blockchain thematic elements'
-          ],
-          deliverables: [
-            '10 original digital artworks',
-            'High-resolution files (300 DPI)',
-            'NFT-ready metadata',
-            'Artist statement for collection'
-          ],
-          artSpecs: {
-            dimensions: '3000x3000 pixels',
-            format: 'PNG, JPEG',
-            resolution: '300 DPI',
-            style: 'Abstract, contemporary'
-          },
-          createdAt: '2025-10-09T14:30:00Z',
-          deadline: '2025-10-25T23:59:59Z'
-        },
-        {
-          id: '3',
-          title: 'Animated Bitcoin Mascot',
-          description: 'Design and animate a friendly mascot character for Bitcoin Art that can be used across marketing materials and the platform.',
-          client: 'Marketing Team',
-          reward: '75,000 $BART',
-          estimatedDays: 10,
-          priority: 'High',
-          status: 'claimed',
-          category: 'animation',
-          medium: 'digital_painting',
-          assignee: {
-            artistName: 'PixelMaster99',
-            handcashHandle: 'pixelmaster',
-            claimedAt: '2025-10-08T16:20:00Z',
-            deadline: '2025-10-22T23:59:59Z',
-            portfolio: 'https://pixelmaster99.art'
-          },
-          requirements: [
-            'Friendly and approachable character',
-            'Multiple animation cycles (idle, excited, working)',
-            'Consistent with brand colors',
-            'Suitable for web and mobile use'
-          ],
-          deliverables: [
-            'Character design sheets',
-            'Animation files (GIF, MP4)',
-            'Individual frame assets',
-            'Usage guidelines document'
-          ],
-          artSpecs: {
-            dimensions: '512x512 pixels base',
-            format: 'GIF, MP4, PNG sequences',
-            style: 'Cartoon, friendly',
-            colorProfile: 'RGB'
-          },
-          createdAt: '2025-10-05T09:15:00Z',
-          deadline: '2025-10-22T23:59:59Z'
-        },
-        {
-          id: '4',
-          title: 'Album Cover: "Digital Dreams"',
-          description: 'Create an eye-catching album cover for an electronic music album themed around cryptocurrency and digital art.',
-          client: 'SynthWave_Producer',
-          reward: '25,000 $BART',
-          estimatedDays: 3,
-          priority: 'Urgent',
-          status: 'available',
-          category: 'album_cover',
-          medium: 'mixed_media',
-          requirements: [
-            'Synthwave/retrowave aesthetic',
-            'Incorporate neon colors and grid patterns',
-            'Include album title and artist name',
-            'Square format for digital release'
-          ],
-          deliverables: [
-            'Final album cover design',
-            'High-resolution print version',
-            'Social media variants',
-            'Source files for future edits'
-          ],
-          artSpecs: {
-            dimensions: '3000x3000 pixels',
-            format: 'PNG, JPEG, PSD',
-            resolution: '300 DPI',
-            style: 'Synthwave, retro-futuristic'
-          },
-          createdAt: '2025-10-10T18:45:00Z',
-          deadline: '2025-10-15T12:00:00Z'
-        },
-        {
-          id: '5',
-          title: 'Portrait Commission: Crypto Pioneer',
-          description: 'Create a digital portrait of a cryptocurrency pioneer in a modern artistic style for display in virtual gallery.',
-          client: 'VirtualGallery_X',
-          reward: '40,000 $BART',
-          estimatedDays: 7,
-          priority: 'Standard',
-          status: 'review',
-          category: 'portrait',
-          medium: 'digital_painting',
-          assignee: {
-            artistName: 'PortraitPro_Sarah',
-            handcashHandle: 'sarahpaints',
-            claimedAt: '2025-10-01T11:30:00Z',
-            deadline: '2025-10-15T23:59:59Z',
-            portfolio: 'https://sarahportraits.crypto'
-          },
-          requirements: [
-            'Photorealistic style with artistic flair',
-            'Suitable for large display in VR',
-            'Incorporate subtle tech/crypto elements',
-            'Professional quality for gallery exhibition'
-          ],
-          deliverables: [
-            'Final portrait in ultra-high resolution',
-            'VR-optimized version',
-            'Time-lapse creation video',
-            'Artist signature and authentication'
-          ],
-          artSpecs: {
-            dimensions: '6000x8000 pixels',
-            format: 'PNG, TIFF',
-            resolution: '300 DPI',
-            style: 'Photorealistic with artistic interpretation'
-          },
-          createdAt: '2025-09-28T13:20:00Z',
-          deadline: '2025-10-15T23:59:59Z'
-        },
-        {
-          id: '6',
-          title: 'NFT Collection: Pixel Bitcoins',
-          description: 'Design a 100-piece NFT collection featuring pixelated Bitcoin symbols with different rarity traits and attributes.',
-          client: 'NFT_Entrepreneur',
-          reward: '200,000 $BART',
-          estimatedDays: 21,
-          priority: 'Standard',
-          status: 'available',
-          category: 'nft_creation',
-          medium: 'pixel_art',
-          requirements: [
-            '100 unique variations',
-            'Rarity system with different traits',
-            'Consistent 32x32 pixel art style',
-            'Metadata JSON for each NFT'
-          ],
-          deliverables: [
-            '100 unique pixel art pieces',
-            'Rarity breakdown document',
-            'NFT metadata files',
-            'Collection description and story'
-          ],
-          artSpecs: {
-            dimensions: '1024x1024 pixels (32x32 scaled)',
-            format: 'PNG',
-            style: 'Pixel art, retro gaming',
-            colorProfile: 'Limited palette'
-          },
-          createdAt: '2025-10-07T08:00:00Z',
-          deadline: '2025-11-05T23:59:59Z'
-        }
-      ];
+      const response = await fetch('https://api.github.com/repos/bitcoin-apps-suite/bitcoin-art/issues?state=all&per_page=100');
+      const githubIssues: GitHubIssue[] = await response.json();
       
-      setContracts(sampleContracts);
+      const developmentContracts = githubIssues.map(parseTaskFromIssue);
+      setContracts(developmentContracts);
     } catch (error) {
-      console.error('Error loading art contracts:', error);
+      console.error('Error loading GitHub issues for contracts:', error);
       setContracts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClaimContract = (contract: ArtContract) => {
+  const handleClaimContract = (contract: DevelopmentContract) => {
     setSelectedContract(contract);
     setShowClaimModal(true);
   };
 
-  const handleSubmitClaim = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedContract) return;
-    
-    try {
-      // In production, this would submit to an API
-      console.log('Claiming contract:', selectedContract.id, claimForm);
-      
-      // Update local state
-      setContracts(prev => prev.map(contract => 
-        contract.id === selectedContract.id 
-          ? {
-              ...contract,
-              status: 'claimed' as const,
-              assignee: {
-                artistName: claimForm.artistName,
-                handcashHandle: claimForm.handcashHandle,
-                claimedAt: new Date().toISOString(),
-                deadline: new Date(Date.now() + claimForm.estimatedDays * 24 * 60 * 60 * 1000).toISOString(),
-                portfolio: claimForm.portfolioUrl
-              }
-            }
-          : contract
-      ));
-      
-      setShowClaimModal(false);
-      setSelectedContract(null);
-      setClaimForm({
-        artistName: '',
-        handcashHandle: '',
-        portfolioUrl: '',
-        estimatedDays: 7
-      });
-      
-      alert('Contract claimed successfully!');
-    } catch (error) {
-      console.error('Error claiming contract:', error);
-      alert('Error claiming contract. Please try again.');
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -373,27 +192,27 @@ export default function ContractsPage() {
   };
 
   const filteredContracts = contracts.filter(contract => {
-    if (activeTab === 'digital_art') {
-      return ['digital_art', 'illustration', 'concept_art'].includes(contract.category);
-    } else if (activeTab === 'nft_creation') {
-      return contract.category === 'nft_creation';
-    } else if (activeTab === 'commissions') {
-      return ['portrait', 'album_cover', 'logo_design', 'animation'].includes(contract.category);
+    if (activeTab === 'development') {
+      return contract.category === 'Developer';
+    } else if (activeTab === 'enhancement') {
+      return ['Developer/Designer', 'Developer/Artist'].includes(contract.category);
+    } else if (activeTab === 'bug') {
+      return contract.priority === 'Critical' || contract.priority === 'High';
     }
     return true;
   });
 
-  const formatDeadline = (deadline: string) => {
-    const date = new Date(deadline);
+  const formatCreatedDate = (createdAt: string) => {
+    const date = new Date(createdAt);
     const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'Overdue';
-    if (diffDays === 0) return 'Due today';
-    if (diffDays === 1) return 'Due tomorrow';
-    if (diffDays < 7) return `${diffDays} days left`;
-    return `${Math.ceil(diffDays / 7)} weeks left`;
+    if (diffDays === 0) return 'Created today';
+    if (diffDays === 1) return 'Created yesterday';
+    if (diffDays < 7) return `Created ${diffDays} days ago`;
+    if (diffDays < 30) return `Created ${Math.floor(diffDays / 7)} weeks ago`;
+    return `Created ${Math.floor(diffDays / 30)} months ago`;
   };
 
   return (
@@ -405,69 +224,69 @@ export default function ContractsPage() {
       {/* Developer Sidebar - only on desktop */}
       {!isMobile && <DevSidebar />}
       
-      <div className={`contracts-page ${isLoaded ? 'loaded' : 'loading'}`}>
+      <div className={`contracts-page ${isLoaded ? 'loaded' : 'loading'} ${!isMobile ? (sidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded') : ''}`}>
         <div className="contracts-container">
           {/* Hero Section */}
           <section className="contracts-hero">
-            <h1><span style={{color: '#ffffff'}}>Art</span> <span style={{color: '#8b5cf6'}}>Contracts</span></h1>
+            <h1><span style={{color: '#ffffff'}}>Development</span> <span style={{color: '#8b5cf6'}}>Contracts</span></h1>
             <p className="contracts-tagline">
-              Find and claim art commissions, create beautiful works, earn BART tokens
+              Professional development contracts between Bitcoin Art platform and developers
             </p>
-            <div className="contracts-badge">ART COMMISSIONS</div>
+            <div className="contracts-badge">DEVELOPMENT CONTRACTS</div>
           </section>
 
           {/* Tab Navigation */}
           <section className="contracts-tabs-section">
             <div className="contracts-tabs">
               <button 
-                className={activeTab === 'digital_art' ? 'active' : ''}
-                onClick={() => setActiveTab('digital_art')}
+                className={activeTab === 'development' ? 'active' : ''}
+                onClick={() => setActiveTab('development')}
               >
-                Digital Art
+                Core Development
               </button>
               <button 
-                className={activeTab === 'nft_creation' ? 'active' : ''}
-                onClick={() => setActiveTab('nft_creation')}
+                className={activeTab === 'enhancement' ? 'active' : ''}
+                onClick={() => setActiveTab('enhancement')}
               >
-                NFT Collections
+                UI/UX Enhancement
               </button>
               <button 
-                className={activeTab === 'commissions' ? 'active' : ''}
-                onClick={() => setActiveTab('commissions')}
+                className={activeTab === 'bug' ? 'active' : ''}
+                onClick={() => setActiveTab('bug')}
               >
-                Commissions
+                Critical Issues
               </button>
             </div>
           </section>
 
           <div className="contracts-stats">
             <div className="stat-card">
-              <span className="stat-value">{contracts.filter(c => c.status === 'available').length}</span>
-              <span className="stat-label">Available</span>
+              <span className="stat-value">{contracts.filter(c => c.status === 'open').length}</span>
+              <span className="stat-label">Open Contracts</span>
             </div>
             <div className="stat-card">
-              <span className="stat-value">{contracts.filter(c => c.status === 'claimed' || c.status === 'in_progress').length}</span>
-              <span className="stat-label">In Progress</span>
+              <span className="stat-value">{contracts.filter(c => c.assignee).length}</span>
+              <span className="stat-label">Assigned</span>
             </div>
             <div className="stat-card">
-              <span className="stat-value">{contracts.filter(c => c.status === 'review').length}</span>
-              <span className="stat-label">Under Review</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-value">{contracts.filter(c => c.status === 'completed').length}</span>
+              <span className="stat-value">{contracts.filter(c => c.status === 'closed').length}</span>
               <span className="stat-label">Completed</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-value">{contracts.reduce((sum, c) => sum + parseInt(c.reward.replace(/[^0-9]/g, '') || '0'), 0).toLocaleString()}</span>
+              <span className="stat-label">Total $BART Pool</span>
             </div>
           </div>
 
           {loading ? (
-            <div className="contracts-loading">Loading art contracts...</div>
+            <div className="contracts-loading">Loading development contracts...</div>
           ) : (
             <div className="contracts-grid">
               {filteredContracts.map(contract => (
                 <div 
                   key={contract.id} 
-                  className={`contract-card ${contract.status !== 'available' ? 'contract-unavailable' : ''}`}
-                  onClick={() => contract.status === 'available' && setSelectedContract(contract)}
+                  className={`contract-card ${contract.status !== 'open' ? 'contract-unavailable' : ''}`}
+                  onClick={() => contract.status === 'open' && setSelectedContract(contract)}
                 >
                   <div className="contract-header">
                     <h3>{contract.title}</h3>
@@ -482,7 +301,7 @@ export default function ContractsPage() {
                   <p className="contract-description">{contract.description}</p>
                   
                   <div className="contract-client">
-                    <strong>Client:</strong> {contract.client}
+                    <strong>GitHub Issue:</strong> #{contract.githubNumber}
                   </div>
                   
                   <div className="contract-meta">
@@ -493,33 +312,31 @@ export default function ContractsPage() {
                       {contract.priority}
                     </span>
                     <span className="contract-reward">{contract.reward}</span>
-                    <span className="contract-time">{contract.estimatedDays}d</span>
+                    <span className="contract-time">{contract.estimatedHours}</span>
                   </div>
 
                   <div className="contract-deadline">
-                    {formatDeadline(contract.deadline)}
+                    {formatCreatedDate(contract.createdAt)}
                   </div>
 
                   {contract.assignee && (
                     <div className="contract-assignee">
-                      <span>Artist: {contract.assignee.artistName}</span>
-                      {contract.assignee.portfolio && (
-                        <a href={contract.assignee.portfolio} target="_blank" rel="noopener noreferrer">
-                          Portfolio
-                        </a>
-                      )}
+                      <span>Assigned to: {contract.assignee.login}</span>
+                      <a href={contract.url} target="_blank" rel="noopener noreferrer">
+                        View on GitHub
+                      </a>
                     </div>
                   )}
 
-                  {contract.status === 'available' && (
+                  {contract.status === 'open' && !contract.assignee && (
                     <button 
                       className="claim-button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleClaimContract(contract);
+                        window.open(contract.url, '_blank');
                       }}
                     >
-                      Claim Contract
+                      Apply on GitHub
                     </button>
                   )}
                 </div>
@@ -528,7 +345,7 @@ export default function ContractsPage() {
           )}
 
           {/* Contract Detail Modal */}
-          {selectedContract && !showClaimModal && (
+          {selectedContract && (
             <div className="modal-overlay" onClick={() => setSelectedContract(null)}>
               <div className="modal" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
@@ -538,22 +355,25 @@ export default function ContractsPage() {
                 
                 <div className="modal-content">
                   <div className="modal-section">
-                    <h4>Description</h4>
+                    <h4>Contract Description</h4>
                     <p>{selectedContract.description}</p>
                   </div>
 
                   <div className="modal-section">
-                    <h4>Client</h4>
-                    <p>{selectedContract.client}</p>
+                    <h4>GitHub Issue</h4>
+                    <p>Issue #{selectedContract.githubNumber}</p>
+                    <a href={selectedContract.url} target="_blank" rel="noopener noreferrer" className="github-link">
+                      View full issue on GitHub →
+                    </a>
                   </div>
 
                   <div className="modal-section">
-                    <h4>Requirements</h4>
-                    <ul>
-                      {selectedContract.requirements.map((req, index) => (
-                        <li key={index}>{req}</li>
+                    <h4>Required Skills</h4>
+                    <div className="skills-list">
+                      {selectedContract.skills.map((skill, index) => (
+                        <span key={index} className="skill-tag">{skill}</span>
                       ))}
-                    </ul>
+                    </div>
                   </div>
 
                   <div className="modal-section">
@@ -566,29 +386,30 @@ export default function ContractsPage() {
                   </div>
 
                   <div className="modal-section">
-                    <h4>Art Specifications</h4>
-                    <div className="art-specs">
-                      {selectedContract.artSpecs.dimensions && (
-                        <div><strong>Dimensions:</strong> {selectedContract.artSpecs.dimensions}</div>
-                      )}
-                      {selectedContract.artSpecs.format && (
-                        <div><strong>Format:</strong> {selectedContract.artSpecs.format}</div>
-                      )}
-                      {selectedContract.artSpecs.resolution && (
-                        <div><strong>Resolution:</strong> {selectedContract.artSpecs.resolution}</div>
-                      )}
-                      {selectedContract.artSpecs.style && (
-                        <div><strong>Style:</strong> {selectedContract.artSpecs.style}</div>
-                      )}
+                    <h4>Acceptance Criteria</h4>
+                    <ul>
+                      {selectedContract.acceptanceCriteria.map((criteria, index) => (
+                        <li key={index}>{criteria}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="modal-section">
+                    <h4>Contract Terms</h4>
+                    <div className="contract-terms">
+                      <div><strong>Reward:</strong> {selectedContract.reward}</div>
+                      <div><strong>Estimated Time:</strong> {selectedContract.estimatedHours}</div>
+                      <div><strong>Priority Level:</strong> {selectedContract.priority}</div>
+                      <div><strong>Category:</strong> {selectedContract.category}</div>
                     </div>
                   </div>
 
                   <div className="modal-actions">
                     <button 
-                      onClick={() => setShowClaimModal(true)}
+                      onClick={() => window.open(selectedContract.url, '_blank')}
                       className="modal-button primary"
                     >
-                      Claim Contract ({selectedContract.reward})
+                      Apply on GitHub ({selectedContract.reward})
                     </button>
                     <button 
                       onClick={() => setSelectedContract(null)}
@@ -602,85 +423,6 @@ export default function ContractsPage() {
             </div>
           )}
 
-          {/* Claim Modal */}
-          {showClaimModal && selectedContract && (
-            <div className="modal-overlay" onClick={() => setShowClaimModal(false)}>
-              <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <h2>Claim Contract: {selectedContract.title}</h2>
-                  <button onClick={() => setShowClaimModal(false)}>×</button>
-                </div>
-                
-                <form onSubmit={handleSubmitClaim} className="modal-content">
-                  <div className="contract-summary">
-                    <p><strong>Reward:</strong> {selectedContract.reward}</p>
-                    <p><strong>Estimated Time:</strong> {selectedContract.estimatedDays} days</p>
-                    <p><strong>Deadline:</strong> {formatDeadline(selectedContract.deadline)}</p>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="artistName">Artist Name *</label>
-                    <input
-                      type="text"
-                      id="artistName"
-                      value={claimForm.artistName}
-                      onChange={(e) => setClaimForm({...claimForm, artistName: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="handcashHandle">HandCash Handle</label>
-                    <input
-                      type="text"
-                      id="handcashHandle"
-                      value={claimForm.handcashHandle}
-                      onChange={(e) => setClaimForm({...claimForm, handcashHandle: e.target.value})}
-                      placeholder="your-handcash-handle"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="portfolioUrl">Portfolio URL</label>
-                    <input
-                      type="url"
-                      id="portfolioUrl"
-                      value={claimForm.portfolioUrl}
-                      onChange={(e) => setClaimForm({...claimForm, portfolioUrl: e.target.value})}
-                      placeholder="https://your-portfolio.com"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="estimatedDays">Estimated Completion (days)</label>
-                    <input
-                      type="number"
-                      id="estimatedDays"
-                      value={claimForm.estimatedDays}
-                      onChange={(e) => setClaimForm({...claimForm, estimatedDays: parseInt(e.target.value)})}
-                      min="1"
-                      max="30"
-                    />
-                  </div>
-
-                  <div className="claim-terms">
-                    <h4>Contract Terms</h4>
-                    <ul>
-                      <li>Payment in $BART tokens upon completion and approval</li>
-                      <li>Work must meet all specified requirements</li>
-                      <li>Original artwork with full rights transfer</li>
-                      <li>Revisions may be requested during review</li>
-                      <li>Cancellation possible with 24h notice</li>
-                    </ul>
-                  </div>
-                  
-                  <button type="submit" className="submit-claim-button">
-                    Accept & Claim Contract
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
         </div>
       </div>
       
@@ -708,27 +450,24 @@ export default function ContractsPage() {
           padding-top: 96px;
           padding-bottom: 120px;
           font-weight: 300;
-          transition: margin-left 0.3s ease, opacity 0.3s ease;
-          margin-left: 260px;
+          transition: margin-left 0.3s ease;
           overflow-y: auto;
         }
 
-        /* Prevent FOUC */
-        .contracts-page.loading {
-          opacity: 0;
-          visibility: hidden;
+        /* Sidebar responsive states */
+        .contracts-page.sidebar-expanded {
+          margin-left: 260px;
+        }
+        
+        .contracts-page.sidebar-collapsed {
+          margin-left: 60px;
         }
 
-        .contracts-page.loaded {
-          opacity: 1;
-          visibility: visible;
-        }
-
-        /* Mobile adjustments */
+        /* Mobile - no sidebar margin */
         @media (max-width: 768px) {
           .contracts-page {
-            margin-left: 0;
-            padding-bottom: 100px;
+            margin-left: 0 !important;
+            padding-bottom: 160px; /* Account for mobile dock */
           }
         }
 
@@ -882,6 +621,45 @@ export default function ContractsPage() {
           transform: none;
           border-color: rgba(255, 255, 255, 0.05);
           box-shadow: none;
+        }
+
+        .github-link {
+          color: #8b5cf6;
+          text-decoration: none;
+          margin-top: 8px;
+          display: inline-block;
+        }
+
+        .github-link:hover {
+          text-decoration: underline;
+        }
+
+        .skills-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 8px;
+        }
+
+        .skill-tag {
+          background: rgba(139, 92, 246, 0.2);
+          color: #8b5cf6;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .contract-terms {
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 8px;
+          padding: 16px;
+        }
+
+        .contract-terms div {
+          margin-bottom: 8px;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.8);
         }
 
         .contract-header {

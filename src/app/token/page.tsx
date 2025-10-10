@@ -6,27 +6,37 @@ import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
 import AppHeader from '@/components/AppHeader';
+import Dock from '@/components/Dock';
 
 export default function TokenPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    const checkSidebar = () => {
+      const saved = localStorage.getItem('devSidebarCollapsed');
+      setSidebarCollapsed(saved !== null ? saved === 'true' : true);
+    };
     
-    // Initial check
+    // Initial checks
     checkMobile();
+    checkSidebar();
     
     const handleResize = () => checkMobile();
     
+    // Poll for sidebar changes since localStorage events don't fire in same tab
+    const sidebarInterval = setInterval(checkSidebar, 100);
+    
     window.addEventListener('resize', handleResize);
     
-    // Set loaded after a brief delay to ensure CSS is applied
-    const timer = setTimeout(() => setIsLoaded(true), 100);
+    // Set loaded immediately - no more flash
+    setIsLoaded(true);
     
     return () => {
       window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
+      clearInterval(sidebarInterval);
     };
   }, []);
 
@@ -39,7 +49,7 @@ export default function TokenPage() {
       {/* Developer Sidebar - only on desktop */}
       {!isMobile && <DevSidebar />}
       
-      <div className={`token-page ${isLoaded ? 'loaded' : 'loading'}`}>
+      <div className={`token-page ${isLoaded ? 'loaded' : 'loading'} ${!isMobile ? (sidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded') : ''}`}>
         <div className="token-container">
           {/* Hero Section */}
           <section className="token-hero">
@@ -312,6 +322,10 @@ export default function TokenPage() {
           </section>
         </div>
       </div>
+      
+      {/* Mini Dock at the bottom */}
+      <Dock />
+      
       <Footer />
       
       <style jsx>{`
@@ -333,30 +347,24 @@ export default function TokenPage() {
           padding-top: 96px;
           padding-bottom: 120px;
           font-weight: 300;
-          transition: margin-left 0.3s ease, opacity 0.3s ease;
-          margin-left: 260px; /* Account for sidebar */
+          transition: margin-left 0.3s ease;
           overflow-y: auto;
         }
 
-        /* Prevent FOUC */
-        .token-page.loading {
-          opacity: 0;
-          visibility: hidden;
+        /* Sidebar responsive states */
+        .token-page.sidebar-expanded {
+          margin-left: 260px;
+        }
+        
+        .token-page.sidebar-collapsed {
+          margin-left: 60px;
         }
 
-        .token-page.loaded {
-          opacity: 1;
-          visibility: visible;
-        }
-
-        /* Adjust for DevSidebar on desktop */
-        @media (min-width: 769px) {
-          .token-page.with-sidebar-expanded {
-            margin-left: 260px;
-          }
-          
-          .token-page.with-sidebar-collapsed {
-            margin-left: 60px;
+        /* Mobile - no sidebar margin */
+        @media (max-width: 768px) {
+          .token-page {
+            margin-left: 0 !important;
+            padding-bottom: 160px; /* Account for mobile dock */
           }
         }
 
@@ -900,13 +908,8 @@ export default function TokenPage() {
           border-color: #8b5cf6;
         }
 
-        /* Responsive - Mobile */
+        /* Additional Mobile Responsive */
         @media (max-width: 768px) {
-          .token-page {
-            margin-left: 0;
-            padding-bottom: 100px; /* Account for mobile dock */
-          }
-          
           .token-hero h1 {
             font-size: 32px;
           }

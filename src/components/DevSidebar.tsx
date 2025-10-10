@@ -79,13 +79,13 @@ export default function DevSidebar() {
     // Art System
     { divider: true },
     { section: 'ART SYSTEM' },
-    { path: '/contracts', icon: Palette, label: 'Art Commissions' },
     { path: '/artists', icon: Users, label: 'Artists', badge: '42' },
     { path: '/docs', icon: BookOpen, label: 'Documentation' },
     
     // Development
     { divider: true },
     { section: 'DEVELOPMENT' },
+    { path: '/contracts', icon: FileCode, label: 'Dev Contracts' },
     { path: '/tasks', icon: Terminal, label: 'Find Work', badge: issueCount > 0 ? String(issueCount) : '0' },
     { path: '/api', icon: Package, label: 'API Reference' },
     { path: 'https://github.com/bitcoin-apps-suite/bitcoin-art', icon: Github, label: 'GitHub Repository', external: true },
