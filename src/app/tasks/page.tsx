@@ -98,15 +98,40 @@ export default function TasksPage() {
           ) || [];
         };
 
+        // Calculate appropriate reward based on priority (0.005% - 0.1% of 1B tokens)
+        const priority = (priorityMatch?.[1] as any) || 'Medium';
+        const category = (categoryMatch?.[1]?.trim() as any) || 'Developer';
+        let calculatedReward = '100,000 $BART'; // 0.01% - base rate for medium priority
+
+        switch (priority.toLowerCase()) {
+          case 'critical':
+            calculatedReward = '1,000,000 $BART'; // 0.1% - maximum for critical
+            break;
+          case 'high':
+            calculatedReward = '500,000 $BART'; // 0.05% - high priority
+            break;
+          case 'low':
+            calculatedReward = '50,000 $BART'; // 0.005% - simple tasks
+            break;
+          default: // medium
+            calculatedReward = '100,000 $BART'; // 0.01% - standard rate
+        }
+
+        // Adjust for design/artist work (20% bonus)
+        if (category.includes('Designer') || category.includes('Artist')) {
+          const amount = parseInt(calculatedReward.replace(/[^0-9]/g, ''));
+          calculatedReward = `${Math.floor(amount * 1.2).toLocaleString()} $BART`;
+        }
+
         return {
           id: issue.id,
           githubNumber: issue.number,
           title: issue.title,
           description: body.split('## Requirements')[0].replace(/\*\*[^*]+\*\*[^\\n]*\\n/g, '').trim(),
-          priority: (priorityMatch?.[1] as any) || 'Medium',
+          priority: priority,
           estimatedHours: hoursMatch?.[1] || '20-40',
-          reward: rewardMatch?.[1] || '3,000,000 $BART',
-          category: (categoryMatch?.[1]?.trim() as any) || 'Developer',
+          reward: rewardMatch?.[1] || calculatedReward,
+          category: category,
           status: issue.state,
           assignee: issue.assignee,
           url: issue.html_url,

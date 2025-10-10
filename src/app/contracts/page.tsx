@@ -106,14 +106,25 @@ export default function ContractsPage() {
       category = 'Developer/Artist';
     }
     
-    // Determine priority from labels
+    // Determine priority from labels and calculate appropriate reward
     let priority: 'Critical' | 'High' | 'Medium' | 'Low' = 'Medium';
+    let defaultReward = '100,000 $BART'; // 0.01% of 1B tokens - base rate
+    
     if (issue.labels.some(label => label.name.includes('critical') || label.name.includes('urgent'))) {
       priority = 'Critical';
+      defaultReward = '1,000,000 $BART'; // 0.1% - maximum for critical tasks
     } else if (issue.labels.some(label => label.name.includes('high'))) {
       priority = 'High';
+      defaultReward = '500,000 $BART'; // 0.05% - high priority
     } else if (issue.labels.some(label => label.name.includes('low'))) {
       priority = 'Low';
+      defaultReward = '50,000 $BART'; // 0.005% - simple tasks
+    }
+    
+    // Adjust for complexity based on category
+    if (category.includes('Designer') || category.includes('Artist')) {
+      const currentAmount = parseInt(defaultReward.replace(/[^0-9]/g, ''));
+      defaultReward = `${Math.floor(currentAmount * 1.2).toLocaleString()} $BART`; // 20% bonus for design work
     }
     
     const skills = skillsMatch ? skillsMatch.split(',').map(s => s.trim()) : ['Development'];
@@ -123,7 +134,7 @@ export default function ContractsPage() {
       githubNumber: issue.number,
       title: issue.title,
       description: taskMatch || issue.body || 'No description provided',
-      reward: rewardMatch || '5,000,000 $BART',
+      reward: rewardMatch || defaultReward,
       estimatedHours: estimatedHoursMatch || '8-16 hours',
       priority,
       status: issue.state,
