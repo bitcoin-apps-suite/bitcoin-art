@@ -580,10 +580,10 @@ export default function ContractsPage() {
         .contracts-page {
           background: transparent;
           color: #ffffff;
-          min-height: calc(100vh - 176px); /* Account for header space */
+          min-height: calc(100vh - 96px);
           font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           padding-top: 96px;
-          padding-bottom: 120px; /* Extra space for dock */
+          padding-bottom: 120px;
           font-weight: 300;
           transition: margin-left 0.3s ease;
           margin-left: 260px; /* Account for sidebar */
