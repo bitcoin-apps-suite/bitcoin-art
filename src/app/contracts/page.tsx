@@ -567,24 +567,34 @@ export default function ContractsPage() {
       <Footer />
       
       <style jsx>{`
-        /* Contracts Page - Bitcoin Art Purple Theme */
-        .contracts-page {
+        /* App Layout */
+        .App {
+          min-height: 100vh;
           background: #0a0a0a;
           color: #ffffff;
-          min-height: 100vh;
+          overflow-x: hidden;
+          position: relative;
+        }
+
+        /* Contracts Page - Bitcoin Art Purple Theme */
+        .contracts-page {
+          background: transparent;
+          color: #ffffff;
+          min-height: calc(100vh - 176px); /* Account for header space */
           font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           padding-top: 96px;
+          padding-bottom: 120px; /* Extra space for dock */
           font-weight: 300;
           transition: margin-left 0.3s ease;
           margin-left: 260px; /* Account for sidebar */
-          margin-bottom: 80px; /* Account for dock */
+          overflow-y: auto;
         }
 
         /* Mobile adjustments */
         @media (max-width: 768px) {
           .contracts-page {
             margin-left: 0;
-            margin-bottom: 60px;
+            padding-bottom: 100px; /* Account for mobile dock */
           }
         }
 
