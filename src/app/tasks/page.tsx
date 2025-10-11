@@ -6,7 +6,7 @@ import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
 import AppHeader from '@/components/AppHeader';
-import Dock from '@/components/Dock';
+import { BitcoinDock } from '@bitcoin-os/dock';
 
 interface GitHubIssue {
   id: number;
@@ -375,8 +375,8 @@ export default function TasksPage() {
         </div>
       </div>
       
-      {/* Mini Dock at the bottom */}
-      <Dock />
+      {/* Bitcoin Dock at the bottom */}
+      <BitcoinDock />
       
       <Footer />
       

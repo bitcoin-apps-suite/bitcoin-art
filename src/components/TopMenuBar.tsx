@@ -711,8 +711,8 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
       {/* Right side - Status - Desktop Only */}
       {!isMobile && (
         <div className="taskbar-status">
-          {/* Bitcoin Apps in Status Bar */}
-          {bitcoinApps.filter(app => app.url !== '#').slice(0, 6).map((app) => (
+          {/* Bitcoin Apps in Status Bar - Show all available apps */}
+          {bitcoinApps.filter(app => app.url !== '#').map((app) => (
             <a
               key={app.name}
               href={app.url}
@@ -723,9 +723,9 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
               style={{
                 color: app.color,
                 textDecoration: 'none',
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 'bold',
-                padding: '0 4px',
+                padding: '0 3px',
                 transition: 'opacity 0.2s ease'
               }}
               onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
@@ -740,7 +740,7 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
             width: '1px',
             height: '16px',
             background: 'rgba(139, 92, 246, 0.3)',
-            margin: '0 8px'
+            margin: '0 6px'
           }} />
           
           <a 

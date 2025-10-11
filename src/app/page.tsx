@@ -414,7 +414,7 @@ export default function HomePage() {
         />
       )}
 
-      {/* Floating Dock at the bottom */}
+      {/* Mini Dock Status Bar at the bottom */}
       <Dock />
     </div>
   );
