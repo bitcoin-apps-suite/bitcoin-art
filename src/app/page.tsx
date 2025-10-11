@@ -9,6 +9,7 @@ import ArtSidebar from '@/components/ArtSidebar';
 import StudioInterface from '@/components/StudioInterface';
 import MarketplaceView from '@/components/MarketplaceView';
 import GalleryView from '@/components/GalleryView';
+import LycheeGallery from '@/components/LycheeGallery';
 import ArtExchangeView from '@/components/ArtExchangeView';
 import AppHeader from '@/components/AppHeader';
 import AuthModal from '@/components/AuthModal';
@@ -17,7 +18,7 @@ import { HandCashService } from '@/services/HandCashService';
 type ViewMode = 'studio' | 'marketplace' | 'gallery' | 'exchange';
 
 export default function HomePage() {
-  const [currentView, setCurrentView] = useState<ViewMode>('studio');
+  const [currentView, setCurrentView] = useState<ViewMode>('gallery');
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -79,11 +80,11 @@ export default function HomePage() {
       case 'marketplace':
         return <MarketplaceView />;
       case 'gallery':
-        return <GalleryView />;
+        return <LycheeGallery onArtSelect={(art) => console.log('Selected art:', art)} />;
       case 'exchange':
         return <ArtExchangeView />;
       default:
-        return <StudioInterface />;
+        return <LycheeGallery onArtSelect={(art) => console.log('Selected art:', art)} />;
     }
   };
 
