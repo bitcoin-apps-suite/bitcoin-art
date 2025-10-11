@@ -6,6 +6,7 @@ import Providers from "@/components/Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://bitcoin-art.vercel.app'),
   title: "Bitcoin Art Gallery",
   description: "Create, collect, and trade digital art NFTs on Bitcoin",
   keywords: ["Bitcoin", "Art", "NFT", "Gallery", "Digital Art", "Blockchain", "Crypto Art"],
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     siteName: "Bitcoin Art Gallery",
     images: [
       {
-        url: "/og-image.png",
+        url: "/bitcoin-art.jpg",
         width: 1200,
         height: 630,
         alt: "Bitcoin Art Gallery - Create & Trade Art NFTs",
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Bitcoin Art Gallery",
     description: "Create, collect, and trade digital art NFTs on Bitcoin",
-    images: ["/twitter-image.png"],
+    images: ["/bitcoin-art.jpg"],
     creator: "@bitcoinart",
   },
   icons: {
