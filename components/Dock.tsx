@@ -1,5 +1,5 @@
 import React from 'react';
-import { BitcoinDock, defaultBitcoinApps } from '@bitcoin-os/dock';
+import { BitcoinDock, defaultBitcoinApps } from '@bitcoin-os/mini-dock-status-bar';
 
 const Dock: React.FC = () => {
   return (
