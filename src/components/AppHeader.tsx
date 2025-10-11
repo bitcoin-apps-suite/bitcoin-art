@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Palette, Bitcoin, Menu, X } from 'lucide-react';
 
 interface AppHeaderProps {
@@ -9,6 +9,32 @@ interface AppHeaderProps {
 
 export default function AppHeader({ onTitleClick }: AppHeaderProps) {
   const [showInfo, setShowInfo] = useState(false);
+  const [devSidebarCollapsed, setDevSidebarCollapsed] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Track dev sidebar state and mobile state
+  useEffect(() => {
+    const checkStates = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('devSidebarCollapsed');
+        setDevSidebarCollapsed(saved !== null ? saved === 'true' : true);
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+
+    checkStates();
+    
+    // Poll for changes since localStorage events don't fire in same tab
+    const interval = setInterval(checkStates, 100);
+    
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
     <header
@@ -20,6 +46,8 @@ export default function AppHeader({ onTitleClick }: AppHeaderProps) {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 20px',
+        paddingLeft: isMobile ? '20px' : (devSidebarCollapsed ? '80px' : '280px'), // Responsive to DevSidebar state
+        transition: 'padding-left 0.3s ease', // Smooth transition
         position: 'fixed',
         top: '68px',
         left: '0',
@@ -27,13 +55,14 @@ export default function AppHeader({ onTitleClick }: AppHeaderProps) {
         zIndex: 9999,
       }}
     >
-      {/* Logo and Title */}
+      {/* Logo and Title - Moved to Center-Left */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           cursor: onTitleClick ? 'pointer' : 'default',
+          flex: '0 0 auto',
         }}
         onClick={onTitleClick}
       >

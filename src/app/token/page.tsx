@@ -6,7 +6,7 @@ import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
 import AppHeader from '@/components/AppHeader';
-import { BitcoinDock } from '@bitcoin-os/dock';
+import Dock from '@/components/Dock';
 
 export default function TokenPage() {
   const [isMobile, setIsMobile] = useState(false);
@@ -324,7 +324,7 @@ export default function TokenPage() {
       </div>
       
       {/* Mini Dock at the bottom */}
-      <BitcoinDock />
+      <Dock />
       
       <Footer />
       

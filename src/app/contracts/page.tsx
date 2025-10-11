@@ -6,7 +6,7 @@ import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
 import AppHeader from '@/components/AppHeader';
-import { BitcoinDock } from '@bitcoin-os/dock';
+import Dock from '@/components/Dock';
 import { HandCashService } from '@/services/HandCashService';
 
 interface DevelopmentContract {
@@ -438,7 +438,7 @@ export default function ContractsPage() {
       </div>
       
       {/* Mini Dock at the bottom */}
-      <BitcoinDock />
+      <Dock />
       
       <Footer />
       

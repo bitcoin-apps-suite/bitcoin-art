@@ -1,506 +1,490 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HandCashService } from '../services/HandCashService';
+import { MultiAuthService } from '../services/MultiAuthService';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  googleUser: any;
-  setGoogleUser: (user: any) => void;
-  isHandCashAuthenticated: boolean;
-  currentHandCashUser: any;
-  handcashService: HandCashService;
-  onHandCashLogin: () => void;
-  onHandCashLogout: () => void;
-  hasTwitter: boolean;
-  onTwitterConnect: () => void;
+  onAuthSuccess?: () => void;
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
-  googleUser,
-  setGoogleUser,
-  isHandCashAuthenticated,
-  currentHandCashUser,
-  handcashService,
-  onHandCashLogin,
-  onHandCashLogout,
-  hasTwitter,
-  onTwitterConnect
+  onAuthSuccess
 }) => {
-  const [activeTab, setActiveTab] = useState<'google' | 'handcash' | 'social'>('google');
-  const [emailForMagicLink, setEmailForMagicLink] = useState('');
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [multiAuthService] = useState(() => new MultiAuthService());
+  const [authState, setAuthState] = useState(multiAuthService.getState());
+  const [activeTab, setActiveTab] = useState<'connect' | 'profile'>('connect');
+  
+  useEffect(() => {
+    const unsubscribe = multiAuthService.subscribe(setAuthState);
+    return unsubscribe;
+  }, [multiAuthService]);
+
+  useEffect(() => {
+    if (authState.isAuthenticated && onAuthSuccess) {
+      onAuthSuccess();
+    }
+  }, [authState.isAuthenticated, onAuthSuccess]);
 
   if (!isOpen) return null;
 
-  const handleGoogleLogin = () => {
-    // Google OAuth logic will be implemented
-    console.log('Google login not yet implemented in Next.js version');
-  };
-
-  const handleMagicLinkRequest = async () => {
+  const handleProviderConnect = async (providerId: string) => {
     try {
-      const result = await handcashService.requestMagicLink(emailForMagicLink);
-      if (result.success) {
-        setMagicLinkSent(true);
-      } else {
-        alert(result.message);
-      }
+      await multiAuthService.authenticate(providerId);
     } catch (error) {
-      console.error('Magic link request failed:', error);
-      alert('Failed to send magic link. Please try again.');
+      console.error(`Failed to connect ${providerId}:`, error);
+      alert(`Failed to connect ${providerId}. Please try again.`);
     }
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'google':
-        return (
-          <div className="tab-content">
-            <div className="auth-option">
-              <div className="auth-icon google">G</div>
-              <div className="auth-details">
-                <h3>Google Account</h3>
-                <p>Sign in with your Google account for seamless access</p>
-                {googleUser ? (
-                  <div className="auth-status connected">
-                    <span>✅ Connected as {googleUser.name}</span>
-                    <button 
-                      className="btn-secondary"
-                      onClick={() => {
-                        localStorage.removeItem('googleUser');
-                        setGoogleUser(null);
-                      }}
-                    >
-                      Disconnect
-                    </button>
-                  </div>
-                ) : (
-                  <button className="btn-primary" onClick={handleGoogleLogin}>
-                    Sign in with Google
-                  </button>
-                )}
+  const handleProviderDisconnect = async (providerId: string) => {
+    try {
+      await multiAuthService.disconnectProvider(providerId);
+    } catch (error) {
+      console.error(`Failed to disconnect ${providerId}:`, error);
+    }
+  };
+
+  const handleLogout = () => {
+    multiAuthService.logout();
+  };
+
+  const renderConnectTab = () => {
+    const providers = multiAuthService.getProviders();
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <h3 style={{ color: 'white', marginBottom: '8px' }}>Welcome to Bitcoin Art</h3>
+          <p style={{ color: '#888', margin: 0 }}>
+            Connect your accounts to start creating, collecting, and trading digital art on Bitcoin
+          </p>
+        </div>
+
+        {providers.map((provider) => {
+          const isConnected = authState.connectedAccounts[provider.id];
+          
+          return (
+            <div
+              key={provider.id}
+              style={{
+                padding: '20px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: `1px solid ${isConnected ? provider.color : 'rgba(139, 92, 246, 0.2)'}`,
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: `linear-gradient(135deg, ${provider.color}, ${provider.color}88)`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: provider.id === 'handcash' ? '20px' : '18px'
+                  }}
+                >
+                  {provider.id === 'handcash' ? '₿' : provider.name[0]}
+                </div>
+                <div>
+                  <h4 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                    {provider.name}
+                  </h4>
+                  <p style={{ color: '#888', margin: '4px 0 0 0', fontSize: '14px' }}>
+                    {provider.id === 'google' && 'Sign in with Google for easy authentication'}
+                    {provider.id === 'deviantart' && 'Import your portfolio and connect with the community'}
+                    {provider.id === 'handcash' && 'Connect for Bitcoin payments and identity verification'}
+                  </p>
+                  {isConnected && (
+                    <p style={{ color: provider.color, margin: '4px 0 0 0', fontSize: '12px', fontWeight: '600' }}>
+                      ✓ Connected as {isConnected.name}
+                    </p>
+                  )}
+                </div>
               </div>
+              <button
+                onClick={() => isConnected ? handleProviderDisconnect(provider.id) : handleProviderConnect(provider.id)}
+                style={{
+                  padding: '10px 20px',
+                  background: isConnected 
+                    ? 'rgba(255, 255, 255, 0.1)' 
+                    : `linear-gradient(135deg, ${provider.color}, ${provider.color}88)`,
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px'
+                }}
+              >
+                {isConnected ? 'Disconnect' : 'Connect'}
+              </button>
+            </div>
+          );
+        })}
+
+        {authState.isAuthenticated && (
+          <div
+            style={{
+              marginTop: '20px',
+              padding: '16px',
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '12px',
+              textAlign: 'center'
+            }}
+          >
+            <p style={{ color: '#8b5cf6', margin: '0 0 12px 0', fontWeight: '600' }}>
+              🎉 You're all set up!
+            </p>
+            <p style={{ color: '#888', margin: '0 0 16px 0', fontSize: '14px' }}>
+              Primary account: {authState.user?.name} ({authState.primaryProvider})
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setActiveTab('profile')}
+                style={{
+                  padding: '8px 16px',
+                  background: 'linear-gradient(135deg, #8b5cf6, #c084fc)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px'
+                }}
+              >
+                Manage Profile
+              </button>
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: '8px 16px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '6px',
+                  color: '#8b5cf6',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px'
+                }}
+              >
+                Logout
+              </button>
             </div>
           </div>
-        );
+        )}
+      </div>
+    );
+  };
 
-      case 'handcash':
-        return (
-          <div className="tab-content">
-            <div className="auth-option">
-              <div className="auth-icon handcash">₿</div>
-              <div className="auth-details">
-                <h3>HandCash Wallet</h3>
-                <p>Connect your Bitcoin wallet for payments and earnings</p>
-                {isHandCashAuthenticated ? (
-                  <div className="auth-status connected">
-                    <span>✅ Connected as @{currentHandCashUser?.handle}</span>
-                    <button className="btn-secondary" onClick={onHandCashLogout}>
-                      Disconnect
-                    </button>
+  const renderProfileTab = () => {
+    const overlayData = multiAuthService.getOverlayNetworkData();
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <h3 style={{ color: 'white', marginBottom: '8px' }}>Your Artist Network</h3>
+          <p style={{ color: '#888', margin: 0, fontSize: '14px' }}>
+            Overlay network data from all connected accounts
+          </p>
+        </div>
+
+        {/* Network Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+          {[
+            { label: 'Platforms', value: overlayData.totalAccounts, color: '#8b5cf6' },
+            { label: 'Followers', value: overlayData.totalFollowers.toLocaleString(), color: '#06b6d4' },
+            { label: 'Artworks', value: overlayData.totalWorks.toLocaleString(), color: '#10b981' }
+          ].map(({ label, value, color }) => (
+            <div
+              key={label}
+              style={{
+                padding: '16px',
+                background: `linear-gradient(135deg, ${color}20, ${color}10)`,
+                border: `1px solid ${color}40`,
+                borderRadius: '8px',
+                textAlign: 'center'
+              }}
+            >
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
+                {value}
+              </div>
+              <div style={{ fontSize: '12px', color: '#888' }}>
+                {label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Connected Accounts */}
+        <div>
+          <h4 style={{ color: 'white', marginBottom: '12px', fontSize: '16px' }}>Connected Accounts</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {Object.values(authState.connectedAccounts).map((account) => (
+              <div
+                key={account.id}
+                style={{
+                  padding: '12px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: account.avatar ? `url(${account.avatar}) center/cover` : '#666',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '14px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {!account.avatar && account.name[0]}
                   </div>
-                ) : (
-                  <div className="handcash-auth-options">
-                    <button className="btn-primary" onClick={onHandCashLogin}>
-                      Connect HandCash Wallet
-                    </button>
-                    
-                    <div className="magic-link-section">
-                      <h4>Or use Magic Link</h4>
-                      <div className="magic-link-form">
-                        <input
-                          type="email"
-                          placeholder="Enter your email"
-                          value={emailForMagicLink}
-                          onChange={(e) => setEmailForMagicLink(e.target.value)}
-                          disabled={magicLinkSent}
-                        />
-                        <button 
-                          className="btn-secondary"
-                          onClick={handleMagicLinkRequest}
-                          disabled={!emailForMagicLink || magicLinkSent}
-                        >
-                          {magicLinkSent ? 'Link Sent!' : 'Send Magic Link'}
-                        </button>
-                      </div>
-                      {magicLinkSent && (
-                        <p className="magic-link-message">
-                          Check your email for a login link from HandCash
-                        </p>
-                      )}
+                  <div>
+                    <div style={{ color: 'white', fontSize: '14px', fontWeight: '600' }}>
+                      {account.name}
+                    </div>
+                    <div style={{ color: '#888', fontSize: '12px' }}>
+                      {account.provider} • {account.username}
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'social':
-        return (
-          <div className="tab-content">
-            <div className="auth-option">
-              <div className="auth-icon twitter">𝕏</div>
-              <div className="auth-details">
-                <h3>Twitter Integration</h3>
-                <p>Connect Twitter to share your art and engage with collectors</p>
-                {hasTwitter ? (
-                  <div className="auth-status connected">
-                    <span>✅ Twitter Connected</span>
-                    <button className="btn-secondary">
-                      Manage Connection
-                    </button>
-                  </div>
-                ) : (
-                  <button className="btn-primary" onClick={onTwitterConnect}>
-                    Connect Twitter
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {authState.primaryProvider === account.provider && (
+                    <span style={{ 
+                      padding: '2px 6px', 
+                      background: '#8b5cf6', 
+                      borderRadius: '4px', 
+                      color: 'white', 
+                      fontSize: '10px',
+                      fontWeight: '600'
+                    }}>
+                      PRIMARY
+                    </span>
+                  )}
+                  <button
+                    onClick={() => multiAuthService.switchPrimaryProvider(account.provider)}
+                    disabled={authState.primaryProvider === account.provider}
+                    style={{
+                      padding: '4px 8px',
+                      background: 'rgba(139, 92, 246, 0.2)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      borderRadius: '4px',
+                      color: '#8b5cf6',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      opacity: authState.primaryProvider === account.provider ? 0.5 : 1
+                    }}
+                  >
+                    Set Primary
                   </button>
-                )}
+                </div>
               </div>
-            </div>
-            
-            <div className="auth-option">
-              <div className="auth-icon github">📁</div>
-              <div className="auth-details">
-                <h3>GitHub Portfolio</h3>
-                <p>Connect GitHub to showcase your coding art and digital projects</p>
-                <button className="btn-primary" disabled>
-                  Coming Soon
-                </button>
-              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Portfolio Links */}
+        {overlayData.portfolioUrls.length > 0 && (
+          <div>
+            <h4 style={{ color: 'white', marginBottom: '12px', fontSize: '16px' }}>Portfolio Links</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {overlayData.portfolioUrls.map(({ provider, url, username }) => (
+                <a
+                  key={provider}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    padding: '10px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderRadius: '6px',
+                    color: '#8b5cf6',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '14px'
+                  }}
+                >
+                  <span>{provider} - @{username}</span>
+                  <span>↗</span>
+                </a>
+              ))}
             </div>
           </div>
-        );
-
-      default:
-        return null;
-    }
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>🎨 Join Bitcoin Art</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
-        </div>
-        
-        <div className="modal-body">
-          <div className="auth-tabs">
-            <button 
-              className={`tab ${activeTab === 'google' ? 'active' : ''}`}
-              onClick={() => setActiveTab('google')}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        padding: '20px'
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        style={{
+          background: 'linear-gradient(180deg, #1a1a1a 0%, #141414 100%)',
+          borderRadius: '16px',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          width: '100%',
+          maxWidth: '600px',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: '24px',
+            borderBottom: '1px solid rgba(139, 92, 246, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #8b5cf6, #c084fc)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px'
+              }}
             >
-              <span className="tab-icon">G</span>
-              Google
-            </button>
-            <button 
-              className={`tab ${activeTab === 'handcash' ? 'active' : ''}`}
-              onClick={() => setActiveTab('handcash')}
-            >
-              <span className="tab-icon">₿</span>
-              HandCash
-            </button>
-            <button 
-              className={`tab ${activeTab === 'social' ? 'active' : ''}`}
-              onClick={() => setActiveTab('social')}
-            >
-              <span className="tab-icon">🌐</span>
-              Social
-            </button>
+              🎨
+            </div>
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: 'white', margin: 0 }}>
+              {authState.isAuthenticated ? 'Artist Dashboard' : 'Join Bitcoin Art'}
+            </h2>
           </div>
-          
-          {renderTabContent()}
-          
-          <div className="auth-benefits">
-            <h4>Why connect your accounts?</h4>
-            <ul>
-              <li>🎨 Create and showcase your art portfolio</li>
-              <li>💰 Earn Bitcoin from art sales and commissions</li>
-              <li>🔒 Secure your intellectual property on blockchain</li>
-              <li>📈 Issue dividend-bearing shares in your artwork</li>
-              <li>🤝 Connect with clients and other artists</li>
-              <li>🌍 Share your work across social platforms</li>
-            </ul>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#888',
+              cursor: 'pointer',
+              padding: '8px',
+              fontSize: '24px'
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Tabs */}
+        {authState.isAuthenticated && (
+          <div
+            style={{
+              display: 'flex',
+              borderBottom: '1px solid rgba(139, 92, 246, 0.2)'
+            }}
+          >
+            {[
+              { id: 'connect', label: 'Connections', icon: '🔗' },
+              { id: 'profile', label: 'Network Profile', icon: '👤' }
+            ].map(({ id, label, icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id as any)}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  background: activeTab === id ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
+                  border: 'none',
+                  color: activeTab === id ? '#8b5cf6' : '#888',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontSize: '14px',
+                  fontWeight: activeTab === id ? '600' : '400',
+                  borderBottom: activeTab === id ? '2px solid #8b5cf6' : '2px solid transparent'
+                }}
+              >
+                <span>{icon}</span>
+                {label}
+              </button>
+            ))}
           </div>
+        )}
+
+        {/* Content */}
+        <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+          {activeTab === 'connect' ? renderConnectTab() : renderProfileTab()}
         </div>
-        
-        <div className="modal-footer">
-          <p className="privacy-note">
-            Your data is secure. We only access what's necessary to provide our services.
-          </p>
-        </div>
+
+        {/* Footer */}
+        {!authState.isAuthenticated && (
+          <div
+            style={{
+              padding: '24px',
+              borderTop: '1px solid rgba(139, 92, 246, 0.2)',
+              background: 'rgba(139, 92, 246, 0.05)'
+            }}
+          >
+            <h4 style={{ color: '#8b5cf6', marginBottom: '12px', fontSize: '16px' }}>
+              Why connect your accounts?
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+              {[
+                '🎨 Create and showcase art portfolios',
+                '💰 Earn Bitcoin from sales',
+                '🔒 Secure IP on blockchain',
+                '📈 Trade artwork as NFTs',
+                '🤝 Connect with collectors',
+                '🌍 Cross-platform sharing'
+              ].map((benefit, index) => (
+                <div key={index} style={{ color: '#888', fontSize: '14px' }}>
+                  {benefit}
+                </div>
+              ))}
+            </div>
+            <p style={{ color: '#666', fontSize: '12px', margin: '16px 0 0 0', textAlign: 'center' }}>
+              Your data is secure. We only access what's necessary to provide our services.
+            </p>
+          </div>
+        )}
       </div>
-      
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-        
-        .auth-modal {
-          background: white;
-          border-radius: 16px;
-          max-width: 500px;
-          width: 90%;
-          max-height: 90vh;
-          overflow-y: auto;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-        
-        .modal-header {
-          padding: 24px 24px 16px;
-          border-bottom: 1px solid #eee;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        
-        .modal-header h2 {
-          margin: 0;
-          color: #333;
-          font-size: 24px;
-        }
-        
-        .close-btn {
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: #666;
-          padding: 4px;
-          border-radius: 50%;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .close-btn:hover {
-          background: #f5f5f5;
-        }
-        
-        .modal-body {
-          padding: 24px;
-        }
-        
-        .auth-tabs {
-          display: flex;
-          gap: 8px;
-          margin-bottom: 24px;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .tab {
-          background: none;
-          border: none;
-          padding: 12px 16px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          border-radius: 8px 8px 0 0;
-          transition: all 0.2s;
-          color: #666;
-        }
-        
-        .tab.active {
-          background: #f8f9fa;
-          color: #333;
-          border-bottom: 2px solid #667eea;
-        }
-        
-        .tab-icon {
-          font-weight: bold;
-        }
-        
-        .tab-content {
-          min-height: 200px;
-        }
-        
-        .auth-option {
-          display: flex;
-          gap: 16px;
-          padding: 16px;
-          border: 1px solid #eee;
-          border-radius: 12px;
-          margin-bottom: 16px;
-        }
-        
-        .auth-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          font-weight: bold;
-          flex-shrink: 0;
-        }
-        
-        .auth-icon.google {
-          background: #4285F4;
-          color: white;
-        }
-        
-        .auth-icon.handcash {
-          background: #ff6b6b;
-          color: white;
-        }
-        
-        .auth-icon.twitter {
-          background: #1DA1F2;
-          color: white;
-        }
-        
-        .auth-icon.github {
-          background: #333;
-          color: white;
-        }
-        
-        .auth-details {
-          flex: 1;
-        }
-        
-        .auth-details h3 {
-          margin: 0 0 8px 0;
-          color: #333;
-        }
-        
-        .auth-details p {
-          margin: 0 0 16px 0;
-          color: #666;
-          font-size: 14px;
-        }
-        
-        .auth-status {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        
-        .auth-status.connected {
-          color: #28a745;
-          font-weight: 500;
-        }
-        
-        .btn-primary {
-          background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-          border: none;
-          border-radius: 8px;
-          color: white;
-          cursor: pointer;
-          font-weight: 600;
-          padding: 12px 24px;
-          transition: all 0.3s ease;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-primary:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .btn-secondary {
-          background: white;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          color: #666;
-          cursor: pointer;
-          font-weight: 500;
-          padding: 8px 16px;
-          transition: all 0.2s;
-        }
-        
-        .btn-secondary:hover {
-          background: #f8f9fa;
-          border-color: #ccc;
-        }
-        
-        .handcash-auth-options {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        
-        .magic-link-section h4 {
-          margin: 0 0 8px 0;
-          color: #666;
-          font-size: 14px;
-        }
-        
-        .magic-link-form {
-          display: flex;
-          gap: 8px;
-        }
-        
-        .magic-link-form input {
-          flex: 1;
-          padding: 8px 12px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          font-size: 14px;
-        }
-        
-        .magic-link-message {
-          color: #28a745;
-          font-size: 14px;
-          margin: 8px 0 0 0;
-        }
-        
-        .auth-benefits {
-          background: #f8f9fa;
-          border-radius: 12px;
-          padding: 20px;
-          margin-top: 24px;
-        }
-        
-        .auth-benefits h4 {
-          margin: 0 0 12px 0;
-          color: #333;
-        }
-        
-        .auth-benefits ul {
-          margin: 0;
-          padding-left: 20px;
-        }
-        
-        .auth-benefits li {
-          margin-bottom: 8px;
-          color: #666;
-          font-size: 14px;
-        }
-        
-        .modal-footer {
-          padding: 16px 24px;
-          border-top: 1px solid #eee;
-          background: #f8f9fa;
-        }
-        
-        .privacy-note {
-          margin: 0;
-          font-size: 12px;
-          color: #666;
-          text-align: center;
-        }
-      `}</style>
     </div>
   );
 };

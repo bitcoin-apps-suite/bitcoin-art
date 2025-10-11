@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
-import { BitcoinDock } from '@bitcoin-os/dock';
+import Dock from '@/components/Dock';
 import ArtSidebar from '@/components/ArtSidebar';
 import StudioInterface from '@/components/StudioInterface';
 import MarketplaceView from '@/components/MarketplaceView';
@@ -406,24 +406,16 @@ export default function HomePage() {
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
-          googleUser={googleUser}
-          setGoogleUser={setGoogleUser}
-          isHandCashAuthenticated={isAuthenticated}
-          currentHandCashUser={currentUser}
-          handcashService={handcashService}
-          onHandCashLogin={() => handcashService.login()}
-          onHandCashLogout={() => {
-            handcashService.logout();
-            setIsAuthenticated(false);
-            setCurrentUser(null);
+          onAuthSuccess={() => {
+            console.log('Authentication successful!');
+            // Optional: close modal on successful auth
+            // setShowAuthModal(false);
           }}
-          hasTwitter={false}
-          onTwitterConnect={() => console.log('Twitter connect not implemented')}
         />
       )}
 
       {/* Floating Dock at the bottom */}
-      <BitcoinDock />
+      <Dock />
     </div>
   );
 }

@@ -282,15 +282,9 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
-          googleUser={googleUser}
-          setGoogleUser={setGoogleUser}
-          isHandCashAuthenticated={isHandCashAuthenticated}
-          currentHandCashUser={currentHandCashUser}
-          handcashService={handcashService}
-          onHandCashLogin={onHandCashLogin}
-          onHandCashLogout={onHandCashLogout}
-          hasTwitter={hasTwitter}
-          onTwitterConnect={handleTwitterConnect}
+          onAuthSuccess={() => {
+            console.log('Authentication successful!');
+          }}
         />
       )}
       
