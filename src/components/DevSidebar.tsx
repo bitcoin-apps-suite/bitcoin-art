@@ -103,7 +103,7 @@ export default function DevSidebar() {
   return (
     <div className={`dev-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="dev-sidebar-header">
-        {!isCollapsed && (
+        {!isCollapsed ? (
           <div className="dev-sidebar-title">
             <div className="dev-sidebar-title-content">
               <Palette className="dev-sidebar-logo" />
@@ -117,14 +117,15 @@ export default function DevSidebar() {
               <X size={16} />
             </button>
           </div>
+        ) : (
+          <button 
+            className="dev-sidebar-toggle"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label="Expand sidebar"
+          >
+            <ChevronRight size={20} />
+          </button>
         )}
-        <button 
-          className="dev-sidebar-toggle"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
       </div>
 
       <nav className="dev-sidebar-nav">
