@@ -420,9 +420,9 @@ export default function HomePage() {
         bottom: 0,
         left: 0,
         right: 0,
-        transform: 'scale(0.45)', 
+        transform: 'scale(0.65)', 
         transformOrigin: 'bottom center', 
-        marginTop: '-40px',
+        marginTop: '-30px',
         zIndex: 1000
       }}>
         <BitcoinDock 
