@@ -415,15 +415,17 @@ export default function HomePage() {
       )}
 
       {/* Bitcoin Dock at the bottom */}
-      <BitcoinDock 
-        apps={defaultBitcoinApps}
-        currentApp="Bitcoin Art"
-        onAppClick={(app) => {
-          if (app.url) {
-            window.open(app.url, '_blank')
-          }
-        }}
-      />
+      <div style={{ transform: 'scale(0.7)', transformOrigin: 'bottom center', marginTop: '-20px' }}>
+        <BitcoinDock 
+          apps={defaultBitcoinApps}
+          currentApp="Bitcoin Art"
+          onAppClick={(app) => {
+            if (app.url) {
+              window.open(app.url, '_blank')
+            }
+          }}
+        />
+      </div>
     </div>
   );
 }
