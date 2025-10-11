@@ -98,13 +98,6 @@ export default function DevSidebar() {
     { path: '/status', icon: CheckCircle, label: 'System Status', badge: 'OK' }
   ];
 
-  const stats = {
-    totalSupply: '1,000,000,000',
-    distributed: '245,678,901',
-    artworks: '12,456',
-    openTasks: issueCount || 0,
-    networkNodes: '150+'
-  };
 
   return (
     <div className={`dev-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -181,32 +174,6 @@ export default function DevSidebar() {
         })}
       </nav>
 
-      {/* Stats section */}
-      {!isCollapsed && (
-        <div className="dev-sidebar-stats">
-          <h4>bArt Stats</h4>
-          <div className="dev-stat">
-            <span className="dev-stat-label">Total Supply</span>
-            <span className="dev-stat-value">{stats.totalSupply}</span>
-          </div>
-          <div className="dev-stat">
-            <span className="dev-stat-label">Distributed</span>
-            <span className="dev-stat-value">{stats.distributed}</span>
-          </div>
-          <div className="dev-stat">
-            <span className="dev-stat-label">Artworks</span>
-            <span className="dev-stat-value">{stats.artworks}</span>
-          </div>
-          <div className="dev-stat">
-            <span className="dev-stat-label">Open Tasks</span>
-            <span className="dev-stat-value">{stats.openTasks}</span>
-          </div>
-          <div className="dev-stat">
-            <span className="dev-stat-label">Network Nodes</span>
-            <span className="dev-stat-value">{stats.networkNodes}</span>
-          </div>
-        </div>
-      )}
 
     </div>
   );
