@@ -26,7 +26,8 @@ import {
   Unlock,
   Activity,
   Clock,
-  Palette
+  Palette,
+  X
 } from 'lucide-react';
 import '../styles/DevSidebar.css';
 
@@ -106,6 +107,28 @@ export default function DevSidebar() {
           <div className="dev-sidebar-title">
             <Palette className="dev-sidebar-logo" />
             <span>Art Developer Hub</span>
+            <button 
+              className="dev-sidebar-close"
+              onClick={() => setIsCollapsed(true)}
+              aria-label="Close sidebar"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#999',
+                cursor: 'pointer',
+                padding: '4px',
+                marginLeft: 'auto',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'color 0.2s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#999'}
+            >
+              <X size={16} />
+            </button>
           </div>
         )}
         <button 
