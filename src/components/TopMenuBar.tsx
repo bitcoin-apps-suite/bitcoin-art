@@ -708,58 +708,25 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
         </button>
       )}
 
-      {/* Right side - Full Width Status Bar like Bitcoin Writer */}
+      {/* Right side - Status */}
       {!isMobile && (
-        <div className="taskbar-status" style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Bitcoin Apps Status Bar - Full Width */}
-          <div style={{ display: 'flex', gap: '2px', flex: 1, justifyContent: 'center' }}>
-            {bitcoinApps.filter(app => app.url !== '#').map((app) => (
-              <a
-                key={app.name}
-                href={app.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="status-app-button"
-                title={app.name}
-                style={{
-                  backgroundColor: app.color,
-                  color: '#000',
-                  padding: '2px 8px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  textDecoration: 'none',
-                  borderRadius: '4px',
-                  minWidth: '60px',
-                  textAlign: 'center',
-                  transition: 'opacity 0.2s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-              >
-                {app.name.replace('Bitcoin ', '')}
-              </a>
-            ))}
-          </div>
-          
-          {/* Right side icons */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <a 
-              href="https://github.com/bitcoin-apps-suite/bitcoin-art" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="taskbar-link"
-              title="GitHub"
-            >
-              <Github className="taskbar-link-icon" />
-            </a>
-            <a 
-              href="/docs" 
-              className="taskbar-link"
-              title="Documentation"
-            >
-              <BookOpen className="taskbar-link-icon" />
-            </a>
-          </div>
+        <div className="taskbar-status">
+          <a 
+            href="https://github.com/bitcoin-apps-suite/bitcoin-art" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="taskbar-link"
+            title="GitHub"
+          >
+            <Github className="taskbar-link-icon" />
+          </a>
+          <a 
+            href="/docs" 
+            className="taskbar-link"
+            title="Documentation"
+          >
+            <BookOpen className="taskbar-link-icon" />
+          </a>
         </div>
       )}
 
