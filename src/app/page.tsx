@@ -415,7 +415,16 @@ export default function HomePage() {
       )}
 
       {/* Bitcoin Dock at the bottom */}
-      <div style={{ transform: 'scale(0.7)', transformOrigin: 'bottom center', marginTop: '-20px' }}>
+      <div style={{ 
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        transform: 'scale(0.45)', 
+        transformOrigin: 'bottom center', 
+        marginTop: '-40px',
+        zIndex: 1000
+      }}>
         <BitcoinDock 
           apps={defaultBitcoinApps}
           currentApp="Bitcoin Art"
