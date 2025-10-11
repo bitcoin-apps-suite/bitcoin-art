@@ -31,6 +31,7 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [googleUser, setGoogleUser] = useState<any>(null);
+  const [devSidebarCollapsed, setDevSidebarCollapsed] = useState(true);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -71,6 +72,24 @@ export default function HomePage() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Track dev sidebar state
+  useEffect(() => {
+    const checkSidebarState = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('devSidebarCollapsed');
+        setDevSidebarCollapsed(saved !== null ? saved === 'true' : true);
+      }
+    };
+
+    // Initial check
+    checkSidebarState();
+
+    // Poll for changes since localStorage events don't fire in same tab
+    const interval = setInterval(checkSidebarState, 100);
+
+    return () => clearInterval(interval);
   }, []);
 
   const renderMainContent = () => {
@@ -136,7 +155,8 @@ export default function HomePage() {
           display: 'flex',
           flex: 1,
           overflow: 'hidden',
-          marginLeft: isMobile ? '0' : '50px', // Space for collapsed DevSidebar on desktop only
+          marginLeft: isMobile ? '0' : (devSidebarCollapsed ? '60px' : '260px'), // Responsive to DevSidebar state
+          transition: 'margin-left 0.3s ease' // Smooth transition
         }}
       >
         {/* Sidebar */}
