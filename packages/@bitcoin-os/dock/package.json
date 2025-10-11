@@ -1,0 +1,22 @@
+{
+  "name": "@bitcoin-os/dock",
+  "version": "1.0.0",
+  "description": "Bitcoin OS Dock component for unified app navigation",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["bitcoin", "os", "dock", "navigation", "react"],
+  "author": "Bitcoin OS",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

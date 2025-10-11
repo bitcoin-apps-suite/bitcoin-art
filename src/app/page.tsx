@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
-import Dock from '@/components/Dock';
+import { BitcoinDock } from '@bitcoin-os/dock';
 import ArtSidebar from '@/components/ArtSidebar';
 import StudioInterface from '@/components/StudioInterface';
 import MarketplaceView from '@/components/MarketplaceView';
@@ -402,7 +402,7 @@ export default function HomePage() {
       )}
 
       {/* Floating Dock at the bottom */}
-      <Dock />
+      <BitcoinDock />
     </div>
   );
 }
