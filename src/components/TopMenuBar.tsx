@@ -711,38 +711,6 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
       {/* Right side - Status - Desktop Only */}
       {!isMobile && (
         <div className="taskbar-status">
-          {/* Bitcoin Apps in Status Bar - Show all available apps */}
-          {bitcoinApps.filter(app => app.url !== '#').map((app) => (
-            <a
-              key={app.name}
-              href={app.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="taskbar-link"
-              title={app.name}
-              style={{
-                color: app.color,
-                textDecoration: 'none',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                padding: '0 3px',
-                transition: 'opacity 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-            >
-              ₿
-            </a>
-          ))}
-          
-          {/* Divider */}
-          <div style={{
-            width: '1px',
-            height: '16px',
-            background: 'rgba(139, 92, 246, 0.3)',
-            margin: '0 6px'
-          }} />
-          
           <a 
             href="https://github.com/bitcoin-apps-suite/bitcoin-art" 
             target="_blank" 
