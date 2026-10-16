@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import WalletButton from './WalletButton';
-import { Github, BookOpen, FileText, ExternalLink } from 'lucide-react'
+import { Github, BookOpen } from 'lucide-react'
 import '../styles/TopMenuBar.css'
 
 interface MenuItem {

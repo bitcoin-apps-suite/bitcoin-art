@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import WalletButton from './WalletButton';
 import {
   Palette,
@@ -9,15 +9,15 @@ import {
   TrendingUp,
   Plus,
   Upload,
-  FolderOpen,
+  
   Clock,
   Star,
   Brush,
   Users,
   Settings,
   HardDrive,
-  User,
-  LogOut,
+  
+  
   ChevronRight,
   ChevronDown,
   Search,
@@ -32,20 +32,23 @@ interface ArtSidebarProps {
   onAuthRequired: () => void;
 }
 
-export default function ArtSidebar({ currentView, onViewChange, onAuthRequired }: ArtSidebarProps) {
+const noopSubscribe = () => () => {};
+
+/** Bytes used by saved projects in localStorage. */
+function readStorageUsed(): number {
+  try {
+    const savedProjects = localStorage.getItem('artProjects');
+    return savedProjects ? new Blob([savedProjects]).size : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export default function ArtSidebar({ currentView, onViewChange }: ArtSidebarProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>(['studio', 'gallery']);
   const [searchQuery, setSearchQuery] = useState('');
-  const [storageUsed, setStorageUsed] = useState(0);
+  const storageUsed = useSyncExternalStore(noopSubscribe, readStorageUsed, () => 0);
   const [storageTotal] = useState(10737418240); // 10GB in bytes
-
-  useEffect(() => {
-    // Load storage info from localStorage
-    const savedProjects = localStorage.getItem('artProjects');
-    if (savedProjects) {
-      const size = new Blob([savedProjects]).size;
-      setStorageUsed(size);
-    }
-  }, []);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>

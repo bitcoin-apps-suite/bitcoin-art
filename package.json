@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "kill:6000": "lsof -ti:3000 | xargs kill -9",
     "kill:3000": "lsof -ti:3000 | xargs kill -9",
     "kill:dev": "lsof -ti:3000 | xargs kill -9 && lsof -ti:3001 | xargs kill -9",

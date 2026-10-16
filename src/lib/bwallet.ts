@@ -6,7 +6,7 @@
  * No server keys, no custodial balances: every paid action is a wallet createAction,
  * and the wallet shows its own approval sheet.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 import { WalletClient, PublicKey, P2PKH, LockingScript, Utils } from '@bsv/sdk';
 
 export const APP_NAME = 'bArt';
@@ -45,8 +45,23 @@ const readStored = (): WalletUser | null => {
   }
 };
 
-const listeners = new Set<(u: WalletUser | null) => void>();
-const broadcast = (u: WalletUser | null) => listeners.forEach((l) => l(u));
+const listeners = new Set<() => void>();
+let current: WalletUser | null | undefined;
+const broadcast = (u: WalletUser | null) => {
+  current = u;
+  listeners.forEach((l) => l());
+};
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+};
+const getSnapshot = (): WalletUser | null => {
+  if (current === undefined) current = readStored();
+  return current;
+};
+const getServerSnapshot = (): WalletUser | null => null;
 
 /** Ask the wallet for this user's identity key (the wallet asks the user to allow it). */
 export const connectWallet = async (): Promise<WalletUser> => {
@@ -69,16 +84,9 @@ export const disconnectWallet = () => {
 };
 
 export const useWallet = () => {
-  const [user, setUser] = useState<WalletUser | null>(null);
+  const user = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    setUser(readStored());
-    listeners.add(setUser);
-    return () => {
-      listeners.delete(setUser);
-    };
-  }, []);
   const connect = useCallback(async () => {
     setConnecting(true);
     setError(null);

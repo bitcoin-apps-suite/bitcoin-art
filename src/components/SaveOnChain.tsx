@@ -14,21 +14,25 @@ export default function SaveOnChain({ accept, noun, title, file: given, onSaved 
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string; txid?: string } | null>(null);
-  const [items, setItems] = useState<SavedItem[] | null>(null);
+  // Saved items, tagged with the identity they were loaded for, so a stale list never shows after a switch.
+  const [saved, setSaved] = useState<{ key: string; items: SavedItem[] } | null>(null);
+  const items = user && saved?.key === user.identityKey ? saved.items : null;
   const chosen = given ?? file;
 
-  const refresh = useCallback(async () => {
-    try {
-      setItems(await listSaved());
-    } catch {
-      setItems([]);
-    }
-  }, []);
+  const loadFor = useCallback(
+    (key: string) =>
+      listSaved()
+        .catch(() => [] as SavedItem[])
+        .then((list) => setSaved({ key, items: list })),
+    [],
+  );
+  const refresh = useCallback(() => {
+    if (user) loadFor(user.identityKey);
+  }, [user, loadFor]);
 
   useEffect(() => {
-    if (user) refresh();
-    else setItems(null);
-  }, [user, refresh]);
+    if (user) loadFor(user.identityKey);
+  }, [user, loadFor]);
 
   const save = async () => {
     if (!chosen) return;

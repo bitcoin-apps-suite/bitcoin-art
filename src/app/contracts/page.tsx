@@ -7,7 +7,7 @@ import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
 import AppHeader from '@/components/AppHeader';
 import Dock from '@/components/Dock';
-import { useWallet } from '@/lib/bwallet';
+import { useIsMobile, useMounted, useSidebarCollapsed } from '@/lib/clientState';
 
 interface DevelopmentContract {
   id: number;
@@ -48,133 +48,104 @@ interface GitHubIssue {
   }>;
 }
 
+function parseTaskFromIssue(issue: GitHubIssue): DevelopmentContract {
+  const lines = issue.body?.split('\n') || [];
+  const taskMatch = lines.find(line => line.startsWith('## Task:'))?.replace('## Task:', '').trim();
+  const rewardMatch = lines.find(line => line.startsWith('## Reward:'))?.replace('## Reward:', '').trim();
+  const estimatedHoursMatch = lines.find(line => line.startsWith('## Estimated Hours:'))?.replace('## Estimated Hours:', '').trim();
+  const skillsMatch = lines.find(line => line.startsWith('## Skills Required:'))?.replace('## Skills Required:', '').trim();
+
+  // Determine category from labels
+  let category: 'Developer' | 'Designer' | 'Artist' | 'Developer/Designer' | 'Developer/Artist' = 'Developer';
+  if (issue.labels.some(label => label.name.includes('design'))) {
+    category = 'Developer/Designer';
+  } else if (issue.labels.some(label => label.name.includes('art') || label.name.includes('ui'))) {
+    category = 'Developer/Artist';
+  }
+
+  // Determine priority from labels and calculate appropriate reward
+  let priority: 'Critical' | 'High' | 'Medium' | 'Low' = 'Medium';
+  let defaultReward = '100,000 $BART'; // 0.01% of 1B tokens - base rate
+
+  if (issue.labels.some(label => label.name.includes('critical') || label.name.includes('urgent'))) {
+    priority = 'Critical';
+    defaultReward = '1,000,000 $BART'; // 0.1% - maximum for critical tasks
+  } else if (issue.labels.some(label => label.name.includes('high'))) {
+    priority = 'High';
+    defaultReward = '500,000 $BART'; // 0.05% - high priority
+  } else if (issue.labels.some(label => label.name.includes('low'))) {
+    priority = 'Low';
+    defaultReward = '50,000 $BART'; // 0.005% - simple tasks
+  }
+
+  // Adjust for complexity based on category
+  if (category.includes('Designer') || category.includes('Artist')) {
+    const currentAmount = parseInt(defaultReward.replace(/[^0-9]/g, ''));
+    defaultReward = `${Math.floor(currentAmount * 1.2).toLocaleString()} $BART`; // 20% bonus for design work
+  }
+
+  const skills = skillsMatch ? skillsMatch.split(',').map(s => s.trim()) : ['Development'];
+
+  return {
+    id: issue.id,
+    githubNumber: issue.number,
+    title: issue.title,
+    description: taskMatch || issue.body || 'No description provided',
+    reward: rewardMatch || defaultReward,
+    estimatedHours: estimatedHoursMatch || '8-16 hours',
+    priority,
+    status: issue.state,
+    category,
+    assignee: issue.assignee,
+    url: issue.html_url,
+    skills,
+    deliverables: [
+      'Complete implementation of the feature/fix',
+      'Unit tests for new functionality',
+      'Documentation updates if applicable',
+      'Code review and approval from maintainers'
+    ],
+    acceptanceCriteria: [
+      'All requirements specified in the issue are met',
+      'Code follows project coding standards',
+      'Tests pass and coverage is maintained',
+      'No breaking changes unless explicitly required'
+    ],
+    createdAt: issue.created_at,
+    updatedAt: issue.updated_at
+  };
+}
+
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<DevelopmentContract[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedContract, setSelectedContract] = useState<DevelopmentContract | null>(null);
-  const [showClaimModal, setShowClaimModal] = useState(false);
-  const { user } = useWallet();
-  const isAuthenticated = !!user;
   const [activeTab, setActiveTab] = useState<'development' | 'enhancement' | 'bug'>('development');
-  const [isMobile, setIsMobile] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const isMobile = useIsMobile();
+  const isLoaded = useMounted();
+  const sidebarCollapsed = useSidebarCollapsed();
   
 
-  function parseTaskFromIssue(issue: GitHubIssue): DevelopmentContract {
-    const lines = issue.body?.split('\n') || [];
-    const taskMatch = lines.find(line => line.startsWith('## Task:'))?.replace('## Task:', '').trim();
-    const rewardMatch = lines.find(line => line.startsWith('## Reward:'))?.replace('## Reward:', '').trim();
-    const estimatedHoursMatch = lines.find(line => line.startsWith('## Estimated Hours:'))?.replace('## Estimated Hours:', '').trim();
-    const skillsMatch = lines.find(line => line.startsWith('## Skills Required:'))?.replace('## Skills Required:', '').trim();
-    
-    // Determine category from labels
-    let category: 'Developer' | 'Designer' | 'Artist' | 'Developer/Designer' | 'Developer/Artist' = 'Developer';
-    if (issue.labels.some(label => label.name.includes('design'))) {
-      category = 'Developer/Designer';
-    } else if (issue.labels.some(label => label.name.includes('art') || label.name.includes('ui'))) {
-      category = 'Developer/Artist';
-    }
-    
-    // Determine priority from labels and calculate appropriate reward
-    let priority: 'Critical' | 'High' | 'Medium' | 'Low' = 'Medium';
-    let defaultReward = '100,000 $BART'; // 0.01% of 1B tokens - base rate
-    
-    if (issue.labels.some(label => label.name.includes('critical') || label.name.includes('urgent'))) {
-      priority = 'Critical';
-      defaultReward = '1,000,000 $BART'; // 0.1% - maximum for critical tasks
-    } else if (issue.labels.some(label => label.name.includes('high'))) {
-      priority = 'High';
-      defaultReward = '500,000 $BART'; // 0.05% - high priority
-    } else if (issue.labels.some(label => label.name.includes('low'))) {
-      priority = 'Low';
-      defaultReward = '50,000 $BART'; // 0.005% - simple tasks
-    }
-    
-    // Adjust for complexity based on category
-    if (category.includes('Designer') || category.includes('Artist')) {
-      const currentAmount = parseInt(defaultReward.replace(/[^0-9]/g, ''));
-      defaultReward = `${Math.floor(currentAmount * 1.2).toLocaleString()} $BART`; // 20% bonus for design work
-    }
-    
-    const skills = skillsMatch ? skillsMatch.split(',').map(s => s.trim()) : ['Development'];
-    
-    return {
-      id: issue.id,
-      githubNumber: issue.number,
-      title: issue.title,
-      description: taskMatch || issue.body || 'No description provided',
-      reward: rewardMatch || defaultReward,
-      estimatedHours: estimatedHoursMatch || '8-16 hours',
-      priority,
-      status: issue.state,
-      category,
-      assignee: issue.assignee,
-      url: issue.html_url,
-      skills,
-      deliverables: [
-        'Complete implementation of the feature/fix',
-        'Unit tests for new functionality',
-        'Documentation updates if applicable',
-        'Code review and approval from maintainers'
-      ],
-      acceptanceCriteria: [
-        'All requirements specified in the issue are met',
-        'Code follows project coding standards',
-        'Tests pass and coverage is maintained',
-        'No breaking changes unless explicitly required'
-      ],
-      createdAt: issue.created_at,
-      updatedAt: issue.updated_at
-    };
-  };
-
-  async function fetchContracts() {
-    try {
-      const response = await fetch('https://api.github.com/repos/bitcoin-apps-suite/bitcoin-art/issues?state=all&per_page=100');
-      const githubIssues: GitHubIssue[] = await response.json();
-      
-      const developmentContracts = githubIssues.map(parseTaskFromIssue);
-      setContracts(developmentContracts);
-    } catch (error) {
-      console.error('Error loading GitHub issues for contracts:', error);
-      setContracts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    const checkSidebar = () => {
-      const saved = localStorage.getItem('devSidebarCollapsed');
-      setSidebarCollapsed(saved !== null ? saved === 'true' : true);
-    };
-    
-    checkMobile();
-    checkSidebar();
-    fetchContracts();
-    
-    const handleResize = () => checkMobile();
-    const sidebarInterval = setInterval(checkSidebar, 100);
-    
-    window.addEventListener('resize', handleResize);
-    
-    // Set loaded immediately - no more flash
-    setIsLoaded(true);
-    
+    let cancelled = false;
+    fetch('https://api.github.com/repos/bitcoin-apps-suite/bitcoin-art/issues?state=all&per_page=100')
+      .then((response) => response.json() as Promise<GitHubIssue[]>)
+      .then((githubIssues) => {
+        if (!cancelled) setContracts(githubIssues.map(parseTaskFromIssue));
+      })
+      .catch((error) => {
+        console.error('Error loading GitHub issues for contracts:', error);
+        if (!cancelled) setContracts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
-      window.removeEventListener('resize', handleResize);
-      clearInterval(sidebarInterval);
+      cancelled = true;
     };
   }, []);
 
 
-
-  const handleClaimContract = (contract: DevelopmentContract) => {
-    setSelectedContract(contract);
-    setShowClaimModal(true);
-  };
 
 
   const getStatusColor = (status: string) => {

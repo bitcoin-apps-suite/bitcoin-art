@@ -3,29 +3,29 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { 
-  ChevronLeft,
+  
   ChevronRight,
-  Monitor,
+  
   FileCode,
   Users,
-  FileText,
+  
   Coins,
   Github,
   GitPullRequest,
-  ExternalLink,
+  
   BookOpen,
   History,
   CheckCircle,
-  ListTodo,
-  Briefcase,
+  
+  
   Terminal,
   Package,
   Download,
-  Upload,
-  Lock,
-  Unlock,
-  Activity,
-  Clock,
+  
+  
+  
+  
+  
   Palette,
   X
 } from 'lucide-react';
