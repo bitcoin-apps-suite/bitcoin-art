@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import WalletButton from './WalletButton';
 import {
   Palette,
   Store,
@@ -259,26 +260,9 @@ export default function ArtSidebar({ currentView, onViewChange, onAuthRequired }
 
         {/* User Section */}
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={onAuthRequired}
-            style={{
-              flex: 1,
-              padding: '8px',
-              background: 'rgba(139, 92, 246, 0.1)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '8px',
-              color: '#8b5cf6',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              fontSize: '13px',
-            }}
-          >
-            <User size={14} />
-            Account
-          </button>
+          <div style={{ flex: 1 }}>
+            <WalletButton />
+          </div>
           <button
             style={{
               padding: '8px',

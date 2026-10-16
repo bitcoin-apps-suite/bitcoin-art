@@ -8,12 +8,10 @@ import { BitcoinDock, defaultBitcoinApps } from '@bitcoin-os/dock';
 import ArtSidebar from '@/components/ArtSidebar';
 import StudioInterface from '@/components/StudioInterface';
 import MarketplaceView from '@/components/MarketplaceView';
-import GalleryView from '@/components/GalleryView';
 import LycheeGallery from '@/components/LycheeGallery';
 import ArtExchangeView from '@/components/ArtExchangeView';
 import AppHeader from '@/components/AppHeader';
-import AuthModal from '@/components/AuthModal';
-import { HandCashService } from '@/services/HandCashService';
+import { useWallet } from '@/lib/bwallet';
 
 type ViewMode = 'studio' | 'marketplace' | 'gallery' | 'exchange';
 
@@ -21,16 +19,12 @@ export default function HomePage() {
   const [currentView, setCurrentView] = useState<ViewMode>('gallery');
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
 
-  // Authentication state
-  const [handcashService] = useState(new HandCashService());
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [googleUser, setGoogleUser] = useState<any>(null);
+  // Sign-in is a BRC-100 wallet (bWalletX first); no server sessions.
+  const { connect } = useWallet();
   const [devSidebarCollapsed, setDevSidebarCollapsed] = useState(true);
 
   useEffect(() => {
@@ -174,7 +168,7 @@ export default function HomePage() {
           <ArtSidebar
             currentView={currentView}
             onViewChange={setCurrentView}
-            onAuthRequired={() => setShowAuthModal(true)}
+            onAuthRequired={() => { void connect(); }}
           />
 
           {/* Resize Handle */}
@@ -401,18 +395,6 @@ export default function HomePage() {
         </>
       )}
 
-      {/* Auth Modal */}
-      {showAuthModal && (
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onAuthSuccess={() => {
-            console.log('Authentication successful!');
-            // Optional: close modal on successful auth
-            // setShowAuthModal(false);
-          }}
-        />
-      )}
 
       {/* Bitcoin Dock at the bottom */}
       <div style={{ 
