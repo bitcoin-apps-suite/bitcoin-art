@@ -352,7 +352,7 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
       items: [
         { 
           label: 'Show Desktop', 
-          action: () => window.location.href = '/'
+          action: () => window.location.assign('/')
         },
         { 
           label: 'Show All Windows', 
@@ -376,17 +376,17 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
         { 
           label: 'Actual Size', 
           shortcut: '⌘0',
-          action: () => (document.body.style as any).zoom = '100%'
+          action: () => document.body.style.setProperty('zoom', '100%')
         },
         { 
           label: 'Zoom In', 
           shortcut: '⌘+',
-          action: () => (document.body.style as any).zoom = '110%'
+          action: () => document.body.style.setProperty('zoom', '110%')
         },
         { 
           label: 'Zoom Out', 
           shortcut: '⌘-',
-          action: () => (document.body.style as any).zoom = '90%'
+          action: () => document.body.style.setProperty('zoom', '90%')
         }
       ]
     },
@@ -469,7 +469,7 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
         { divider: true },
         { 
           label: 'Documentation', 
-          action: () => window.location.href = '/docs'
+          action: () => window.location.assign('/docs')
         },
         { 
           label: 'GitHub Repository', 
@@ -530,7 +530,7 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
             setShowBAppsMenu(!showBAppsMenu)
             setActiveMenu(null)
           }}
-          onDoubleClick={() => window.location.href = '/'}
+          onDoubleClick={() => window.location.assign('/')}
           title="Click for apps • Double-click to go home"
           style={{ 
             background: showBAppsMenu ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
@@ -592,7 +592,7 @@ export default function TopMenuBar({ onOpenApp }: TopMenuBarProps) {
                     e.preventDefault()
                   } else {
                     e.preventDefault()
-                    window.location.href = app.url
+                    window.location.assign(app.url)
                   }
                   setShowBAppsMenu(false)
                 }}

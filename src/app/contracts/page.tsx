@@ -61,32 +61,7 @@ export default function ContractsPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    const checkSidebar = () => {
-      const saved = localStorage.getItem('devSidebarCollapsed');
-      setSidebarCollapsed(saved !== null ? saved === 'true' : true);
-    };
-    
-    checkMobile();
-    checkSidebar();
-    fetchContracts();
-    
-    const handleResize = () => checkMobile();
-    const sidebarInterval = setInterval(checkSidebar, 100);
-    
-    window.addEventListener('resize', handleResize);
-    
-    // Set loaded immediately - no more flash
-    setIsLoaded(true);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearInterval(sidebarInterval);
-    };
-  }, []);
-
-  const parseTaskFromIssue = (issue: GitHubIssue): DevelopmentContract => {
+  function parseTaskFromIssue(issue: GitHubIssue): DevelopmentContract {
     const lines = issue.body?.split('\n') || [];
     const taskMatch = lines.find(line => line.startsWith('## Task:'))?.replace('## Task:', '').trim();
     const rewardMatch = lines.find(line => line.startsWith('## Reward:'))?.replace('## Reward:', '').trim();
@@ -154,7 +129,7 @@ export default function ContractsPage() {
     };
   };
 
-  const fetchContracts = async () => {
+  async function fetchContracts() {
     try {
       const response = await fetch('https://api.github.com/repos/bitcoin-apps-suite/bitcoin-art/issues?state=all&per_page=100');
       const githubIssues: GitHubIssue[] = await response.json();
@@ -168,6 +143,33 @@ export default function ContractsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    const checkSidebar = () => {
+      const saved = localStorage.getItem('devSidebarCollapsed');
+      setSidebarCollapsed(saved !== null ? saved === 'true' : true);
+    };
+    
+    checkMobile();
+    checkSidebar();
+    fetchContracts();
+    
+    const handleResize = () => checkMobile();
+    const sidebarInterval = setInterval(checkSidebar, 100);
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Set loaded immediately - no more flash
+    setIsLoaded(true);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearInterval(sidebarInterval);
+    };
+  }, []);
+
+
 
   const handleClaimContract = (contract: DevelopmentContract) => {
     setSelectedContract(contract);
