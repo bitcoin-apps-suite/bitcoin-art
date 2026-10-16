@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import {
   Search,
-  Filter,
+  
   TrendingUp,
-  Clock,
+  
   Heart,
   ShoppingCart,
   Eye,

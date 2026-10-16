@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet, listSaved, type SavedItem } from '@/lib/bwallet';
 import SaveOnChain from './SaveOnChain';
-import { Search, Grid, Image, Heart, Download, Share2, Eye, Calendar, User, Tag } from 'lucide-react';
+import { Search, Grid, Image as ImageIcon, Heart, Eye } from 'lucide-react';
 
 interface ArtPiece {
   id: string;
@@ -26,7 +26,6 @@ interface LycheeGalleryProps {
 
 export default function LycheeGallery({ onArtSelect }: LycheeGalleryProps) {
   const [artPieces, setArtPieces] = useState<ArtPiece[]>([]);
-  const [selectedArt, setSelectedArt] = useState<ArtPiece | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -76,7 +75,6 @@ export default function LycheeGallery({ onArtSelect }: LycheeGalleryProps) {
   });
 
   const handleArtClick = (art: ArtPiece) => {
-    setSelectedArt(art);
     onArtSelect?.(art);
   };
 
@@ -228,7 +226,7 @@ export default function LycheeGallery({ onArtSelect }: LycheeGalleryProps) {
               gap: '8px'
             }}
           >
-            <Image size={16} />
+            <ImageIcon size={16} />
             List
           </button>
         </div>
@@ -282,7 +280,7 @@ export default function LycheeGallery({ onArtSelect }: LycheeGalleryProps) {
                 justifyContent: 'center',
                 position: 'relative'
               }}>
-                <Image size={48} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                <ImageIcon size={48} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
                 <div style={{
                   position: 'absolute',
                   top: '12px',
@@ -408,7 +406,7 @@ export default function LycheeGallery({ onArtSelect }: LycheeGalleryProps) {
                 justifyContent: 'center',
                 flexShrink: 0
               }}>
-                <Image size={32} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                <ImageIcon size={32} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
               </div>
 
               {/* Content */}

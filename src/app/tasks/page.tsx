@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Footer from '@/components/Footer';
 import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
 import AppHeader from '@/components/AppHeader';
 import { BitcoinDock } from '@bitcoin-os/dock';
+import { useIsMobile, useMounted } from '@/lib/clientState';
 
 interface GitHubIssue {
   id: number;
@@ -43,12 +45,12 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<ParsedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<ParsedTask | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const isMobile = useIsMobile();
+  const isLoaded = useMounted();
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
 
-  async function fetchGitHubIssues() {
+  async function fetchGitHubIssues(): Promise<ParsedTask[]> {
     try {
       const response = await fetch('https://api.github.com/repos/bitcoin-apps-suite/bitcoin-art/issues?state=all&per_page=100');
       
@@ -123,29 +125,22 @@ export default function TasksPage() {
         };
       });
       
-      setTasks(parsedTasks);
+      return parsedTasks;
     } catch (error) {
       console.error('Error fetching GitHub issues:', error);
-    } finally {
-      setLoading(false);
+      return [];
     }
   };
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    
-    checkMobile();
-    fetchGitHubIssues();
-    
-    const handleResize = () => checkMobile();
-    window.addEventListener('resize', handleResize);
-    
-    // Set loaded after a brief delay to prevent FOUC
-    const timer = setTimeout(() => setIsLoaded(true), 100);
-    
+    let cancelled = false;
+    fetchGitHubIssues().then((parsed) => {
+      if (cancelled) return;
+      setTasks(parsed);
+      setLoading(false);
+    });
     return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
+      cancelled = true;
     };
   }, []);
 
@@ -275,7 +270,7 @@ export default function TasksPage() {
                     <span className="task-hours">{task.estimatedHours}h</span>
                     {task.assignee && (
                       <div className="task-assignee">
-                        <img src={task.assignee.avatar_url} alt={task.assignee.login} />
+                        <Image src={task.assignee.avatar_url} alt={task.assignee.login} width={24} height={24} unoptimized />
                         <span>{task.assignee.login}</span>
                       </div>
                     )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useIsMobile, useMounted, useSidebarCollapsed } from '@/lib/clientState';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import ProofOfConceptBar from '@/components/ProofOfConceptBar';
@@ -10,36 +10,9 @@ import AppHeader from '@/components/AppHeader';
 import Dock from '@/components/Dock';
 
 export default function TokenPage() {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    const checkSidebar = () => {
-      const saved = localStorage.getItem('devSidebarCollapsed');
-      setSidebarCollapsed(saved !== null ? saved === 'true' : true);
-    };
-    
-    // Initial checks
-    checkMobile();
-    checkSidebar();
-    
-    const handleResize = () => checkMobile();
-    
-    // Poll for sidebar changes since localStorage events don't fire in same tab
-    const sidebarInterval = setInterval(checkSidebar, 100);
-    
-    window.addEventListener('resize', handleResize);
-    
-    // Set loaded immediately - no more flash
-    setIsLoaded(true);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearInterval(sidebarInterval);
-    };
-  }, []);
+  const isMobile = useIsMobile();
+  const isLoaded = useMounted();
+  const sidebarCollapsed = useSidebarCollapsed();
 
   return (
     <div className="App">

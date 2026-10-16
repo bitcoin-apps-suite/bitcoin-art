@@ -6,18 +6,18 @@ import {
   Palette,
   PenTool,
   Square,
-  Circle,
+  
   Type,
   Eraser,
   Download,
-  Upload,
+  
   Save,
   Undo,
   Redo,
   Layers,
-  Image,
+  
   Sparkles,
-  Zap,
+  
   Grid,
 } from 'lucide-react';
 
@@ -25,7 +25,7 @@ export default function StudioInterface() {
   const [selectedTool, setSelectedTool] = useState('brush');
   const [brushSize, setBrushSize] = useState(5);
   const [selectedColor, setSelectedColor] = useState('#8b5cf6');
-  const [layers, setLayers] = useState([{ id: 1, name: 'Layer 1', visible: true, opacity: 100 }]);
+  const [layers] = useState([{ id: 1, name: 'Layer 1', visible: true, opacity: 100 }]);
 
   const tools = [
     { id: 'brush', icon: Brush, label: 'Brush' },
@@ -217,7 +217,7 @@ export default function StudioInterface() {
           >
             <canvas
               style={{ width: '100%', height: '100%' }}
-              onMouseDown={(e) => {
+              onMouseDown={() => {
                 // Canvas drawing logic would go here
                 console.log('Canvas interaction');
               }}

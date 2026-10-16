@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Palette, Bitcoin, Menu, X } from 'lucide-react';
+import Image from 'next/image';
+import { Bitcoin, Menu, X } from 'lucide-react';
 
 interface AppHeaderProps {
   onTitleClick?: () => void;
@@ -77,9 +78,11 @@ export default function AppHeader({ onTitleClick }: AppHeaderProps) {
             justifyContent: 'center',
           }}
         >
-          <img 
-            src="/bitcoin-art.jpg" 
-            alt="Bitcoin Art Logo" 
+          <Image
+            src="/bitcoin-art.jpg"
+            alt="Bitcoin Art Logo"
+            width={36}
+            height={36}
             style={{
               width: '100%',
               height: '100%',
