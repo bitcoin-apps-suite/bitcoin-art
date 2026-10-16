@@ -33,81 +33,8 @@ export default function MarketplaceView() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('trending');
 
-  // Mock data for artworks
-  const artworks: ArtworkItem[] = [
-    {
-      id: 1,
-      title: 'Neon Dreams',
-      artist: 'CryptoArtist',
-      price: 0.05,
-      likes: 234,
-      views: 1205,
-      imageUrl: '/art1.jpg',
-      category: 'digital',
-      isNew: true,
-      isTrending: true,
-    },
-    {
-      id: 2,
-      title: 'Bitcoin Genesis',
-      artist: 'SatoshiVision',
-      price: 0.12,
-      likes: 456,
-      views: 2340,
-      imageUrl: '/art2.jpg',
-      category: 'crypto',
-      isNew: false,
-      isTrending: true,
-    },
-    {
-      id: 3,
-      title: 'Abstract Reality',
-      artist: 'PixelMaster',
-      price: 0.08,
-      likes: 189,
-      views: 890,
-      imageUrl: '/art3.jpg',
-      category: 'abstract',
-      isNew: true,
-      isTrending: false,
-    },
-    {
-      id: 4,
-      title: 'Future Landscapes',
-      artist: 'DigitalDreamer',
-      price: 0.15,
-      likes: 567,
-      views: 3456,
-      imageUrl: '/art4.jpg',
-      category: 'landscape',
-      isNew: false,
-      isTrending: true,
-    },
-    {
-      id: 5,
-      title: 'Cyber Punk City',
-      artist: 'NeoArtist',
-      price: 0.09,
-      likes: 345,
-      views: 1678,
-      imageUrl: '/art5.jpg',
-      category: 'digital',
-      isNew: true,
-      isTrending: false,
-    },
-    {
-      id: 6,
-      title: 'Golden Ratio',
-      artist: 'MathArt',
-      price: 0.20,
-      likes: 789,
-      views: 4567,
-      imageUrl: '/art6.jpg',
-      category: 'generative',
-      isNew: false,
-      isTrending: true,
-    },
-  ];
+  // Listings will come from artists listing on-chain; none yet.
+  const artworks: ArtworkItem[] = [];
 
   const categories = [
     { id: 'all', label: 'All Artworks', icon: Grid },
@@ -258,6 +185,7 @@ export default function MarketplaceView() {
                 gap: '24px',
               }}
             >
+              {filteredArtworks.length === 0 && <p style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: 'rgba(255,255,255,0.6)' }}>No artworks are listed for sale yet.</p>}
               {filteredArtworks.map((artwork) => (
                 <div
                   key={artwork.id}

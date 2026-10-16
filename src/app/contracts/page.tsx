@@ -7,7 +7,7 @@ import TopMenuBar from '@/components/TopMenuBar';
 import DevSidebar from '@/components/DevSidebar';
 import AppHeader from '@/components/AppHeader';
 import Dock from '@/components/Dock';
-import { HandCashService } from '@/services/HandCashService';
+import { useWallet } from '@/lib/bwallet';
 
 interface DevelopmentContract {
   id: number;
@@ -53,8 +53,8 @@ export default function ContractsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedContract, setSelectedContract] = useState<DevelopmentContract | null>(null);
   const [showClaimModal, setShowClaimModal] = useState(false);
-  const [handcashService] = useState(new HandCashService());
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user } = useWallet();
+  const isAuthenticated = !!user;
   const [activeTab, setActiveTab] = useState<'development' | 'enhancement' | 'bug'>('development');
   const [isMobile, setIsMobile] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -71,7 +71,6 @@ export default function ContractsPage() {
     checkMobile();
     checkSidebar();
     fetchContracts();
-    checkAuthentication();
     
     const handleResize = () => checkMobile();
     const sidebarInterval = setInterval(checkSidebar, 100);
@@ -86,10 +85,6 @@ export default function ContractsPage() {
       clearInterval(sidebarInterval);
     };
   }, []);
-
-  const checkAuthentication = () => {
-    setIsAuthenticated(handcashService.isAuthenticated());
-  };
 
   const parseTaskFromIssue = (issue: GitHubIssue): DevelopmentContract => {
     const lines = issue.body?.split('\n') || [];

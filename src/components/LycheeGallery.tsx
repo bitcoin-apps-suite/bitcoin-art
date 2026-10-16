@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useWallet, listSaved, type SavedItem } from '@/lib/bwallet';
+import SaveOnChain from './SaveOnChain';
 import { Search, Grid, Image, Heart, Download, Share2, Eye, Calendar, User, Tag } from 'lucide-react';
 
 interface ArtPiece {
@@ -30,100 +32,38 @@ export default function LycheeGallery({ onArtSelect }: LycheeGalleryProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [loading, setLoading] = useState(true);
 
-  // Sample Bitcoin Art pieces (in production, this would come from API/database)
+  // The signed-in artist's own pieces, read back from their wallet (saved as 1Sat ordinals). No sample art.
+  const { user } = useWallet();
+  const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => {
-    const sampleArt: ArtPiece[] = [
-      {
-        id: '1',
-        title: 'Bitcoin Genesis',
-        artist: 'SatoshiArtist',
-        imageUrl: '/api/placeholder/800/600',
-        thumbnailUrl: '/api/placeholder/300/225',
-        description: 'A stunning representation of the Bitcoin genesis block in abstract form.',
-        tags: ['bitcoin', 'genesis', 'abstract', 'orange'],
-        createdAt: '2024-01-15',
-        price: '50,000 $BART',
-        likes: 127,
-        views: 1523,
-        collection: 'Crypto Origins'
-      },
-      {
-        id: '2',
-        title: 'Digital Horizon',
-        artist: 'CryptoCanvas',
-        imageUrl: '/api/placeholder/800/600',
-        thumbnailUrl: '/api/placeholder/300/225',
-        description: 'Exploring the intersection of traditional art and blockchain technology.',
-        tags: ['digital', 'horizon', 'purple', 'futuristic'],
-        createdAt: '2024-02-01',
-        price: '75,000 $BART',
-        likes: 89,
-        views: 967,
-        collection: 'Digital Futures'
-      },
-      {
-        id: '3',
-        title: 'Proof of Work',
-        artist: 'HashArtist',
-        imageUrl: '/api/placeholder/800/600',
-        thumbnailUrl: '/api/placeholder/300/225',
-        description: 'Visual representation of computational proof through artistic expression.',
-        tags: ['proof-of-work', 'computation', 'green', 'technical'],
-        createdAt: '2024-01-28',
-        price: '125,000 $BART',
-        likes: 203,
-        views: 2341,
-        collection: 'Tech Art'
-      },
-      {
-        id: '4',
-        title: 'Lightning Network',
-        artist: 'VoltageCreator',
-        imageUrl: '/api/placeholder/800/600',
-        thumbnailUrl: '/api/placeholder/300/225',
-        description: 'Dynamic visualization of lightning-fast Bitcoin transactions.',
-        tags: ['lightning', 'network', 'blue', 'energy'],
-        createdAt: '2024-02-10',
-        price: '90,000 $BART',
-        likes: 156,
-        views: 1879,
-        collection: 'Lightning Series'
-      },
-      {
-        id: '5',
-        title: 'Decentralized Dreams',
-        artist: 'BlockchainBrush',
-        imageUrl: '/api/placeholder/800/600',
-        thumbnailUrl: '/api/placeholder/300/225',
-        description: 'An artistic interpretation of decentralized networks and freedom.',
-        tags: ['decentralized', 'dreams', 'silver', 'freedom'],
-        createdAt: '2024-01-20',
-        price: '60,000 $BART',
-        likes: 178,
-        views: 1654,
-        collection: 'Freedom Collection'
-      },
-      {
-        id: '6',
-        title: 'Hash Rate Harmony',
-        artist: 'MinerMuse',
-        imageUrl: '/api/placeholder/800/600',
-        thumbnailUrl: '/api/placeholder/300/225',
-        description: 'The rhythmic beauty of hash rate fluctuations visualized.',
-        tags: ['hash-rate', 'harmony', 'gold', 'rhythm'],
-        createdAt: '2024-02-05',
-        price: '85,000 $BART',
-        likes: 134,
-        views: 1432,
-        collection: 'Mining Art'
-      }
-    ];
-
-    setTimeout(() => {
-      setArtPieces(sampleArt);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    let live = true;
+    const load = user ? listSaved() : Promise.resolve([] as SavedItem[]);
+    load
+      .then((items) => {
+        if (!live) return;
+        setArtPieces(
+          items
+            .filter((it) => it.url && it.mime.startsWith('image/'))
+            .map((it) => ({
+              id: it.outpoint,
+              title: it.name,
+              artist: user?.name ?? '',
+              imageUrl: it.url as string,
+              thumbnailUrl: it.url as string,
+              description: '',
+              tags: [],
+              createdAt: '',
+              likes: 0,
+              views: 0,
+            })),
+        );
+      })
+      .catch(() => live && setArtPieces([]))
+      .finally(() => live && setLoading(false));
+    return () => {
+      live = false;
+    };
+  }, [user, refreshKey]);
 
   const collections = ['all', ...Array.from(new Set(artPieces.map(art => art.collection).filter(Boolean)))];
 
@@ -294,6 +234,14 @@ export default function LycheeGallery({ onArtSelect }: LycheeGalleryProps) {
         </div>
       </div>
 
+      {artPieces.length === 0 && (
+        <div style={{ margin: '24px 0 40px' }}>
+          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
+            No artworks yet. Save your first piece on-chain and it appears here.
+          </p>
+          <SaveOnChain accept="image/*" noun="artwork" onSaved={() => setRefreshKey((n) => n + 1)} />
+        </div>
+      )}
       {/* Gallery Grid */}
       {viewMode === 'grid' ? (
         <div style={{
