@@ -48,25 +48,7 @@ export default function TasksPage() {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    
-    checkMobile();
-    fetchGitHubIssues();
-    
-    const handleResize = () => checkMobile();
-    window.addEventListener('resize', handleResize);
-    
-    // Set loaded after a brief delay to prevent FOUC
-    const timer = setTimeout(() => setIsLoaded(true), 100);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
-    };
-  }, []);
-
-  const fetchGitHubIssues = async () => {
+  async function fetchGitHubIssues() {
     try {
       const response = await fetch('https://api.github.com/repos/bitcoin-apps-suite/bitcoin-art/issues?state=all&per_page=100');
       
@@ -99,8 +81,8 @@ export default function TasksPage() {
         };
 
         // Calculate appropriate reward based on priority (0.005% - 0.1% of 1B tokens)
-        const priority = (priorityMatch?.[1] as any) || 'Medium';
-        const category = (categoryMatch?.[1]?.trim() as any) || 'Developer';
+        const priority = (priorityMatch?.[1] as ParsedTask['priority'] | undefined) || 'Medium';
+        const category = (categoryMatch?.[1]?.trim() as ParsedTask['category'] | undefined) || 'Developer';
         let calculatedReward = '100,000 $BART'; // 0.01% - base rate for medium priority
 
         switch (priority.toLowerCase()) {
@@ -148,6 +130,25 @@ export default function TasksPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    
+    checkMobile();
+    fetchGitHubIssues();
+    
+    const handleResize = () => checkMobile();
+    window.addEventListener('resize', handleResize);
+    
+    // Set loaded after a brief delay to prevent FOUC
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
+
 
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {

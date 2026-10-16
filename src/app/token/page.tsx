@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Footer from '@/components/Footer';
 import ProofOfConceptBar from '@/components/ProofOfConceptBar';
 import TopMenuBar from '@/components/TopMenuBar';
@@ -203,7 +204,7 @@ export default function TokenPage() {
                 </div>
                 <p style={{textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)'}}>
                   The Bitcoin Art platform enables creators to tokenize, sell shares, and trade their work,
-                  generating platform fees that contribute to the ecosystem's sustainability.
+                  generating platform fees that contribute to the ecosystem&apos;s sustainability.
                 </p>
               </div>
             </div>
@@ -287,7 +288,7 @@ export default function TokenPage() {
               <p>
                 <strong>Trading & Liquidity:</strong> The $BART token is intended to be freely tradable 
                 on the Bitcoin Art Exchange and associated platforms. We encourage an active secondary 
-                market to provide liquidity and price discovery for contributors' work.
+                market to provide liquidity and price discovery for contributors&apos; work.
               </p>
               <p>
                 <strong>Art Tokenization:</strong> The Bitcoin Art platform enables artists to tokenize 
@@ -306,18 +307,18 @@ export default function TokenPage() {
           <section className="cta-section">
             <h2>Ready to Create Digital Art?</h2>
             <div className="cta-buttons">
-              <a 
+              <Link 
                 href="/" 
                 className="cta-btn primary"
               >
                 Start Creating
-              </a>
-              <a 
+              </Link>
+              <Link 
                 href="/exchange" 
                 className="cta-btn secondary"
               >
                 Browse Marketplace
-              </a>
+              </Link>
             </div>
           </section>
         </div>

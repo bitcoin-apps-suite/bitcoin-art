@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 const Footer: React.FC = () => {
   return (
@@ -59,7 +60,7 @@ const Footer: React.FC = () => {
               margin: 0
             }}>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/docs" style={{
+                <Link href="/docs" style={{
                   color: '#9ca3af',
                   textDecoration: 'none',
                   fontSize: '14px',
@@ -67,10 +68,10 @@ const Footer: React.FC = () => {
                 }} onMouseEnter={(e) => e.currentTarget.style.color = '#8b5cf6'}
                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}>
                   Documentation
-                </a>
+                </Link>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/exchange" style={{
+                <Link href="/exchange" style={{
                   color: '#9ca3af',
                   textDecoration: 'none',
                   fontSize: '14px',
@@ -78,10 +79,10 @@ const Footer: React.FC = () => {
                 }} onMouseEnter={(e) => e.currentTarget.style.color = '#8b5cf6'}
                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}>
                   Art Exchange
-                </a>
+                </Link>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/token" style={{
+                <Link href="/token" style={{
                   color: '#9ca3af',
                   textDecoration: 'none',
                   fontSize: '14px',
@@ -89,7 +90,7 @@ const Footer: React.FC = () => {
                 }} onMouseEnter={(e) => e.currentTarget.style.color = '#8b5cf6'}
                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}>
                   $bART Token
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -155,7 +156,7 @@ const Footer: React.FC = () => {
               margin: 0
             }}>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/" style={{
+                <Link href="/" style={{
                   color: '#9ca3af',
                   textDecoration: 'none',
                   fontSize: '14px',
@@ -163,10 +164,10 @@ const Footer: React.FC = () => {
                 }} onMouseEnter={(e) => e.currentTarget.style.color = '#8b5cf6'}
                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}>
                   Art Studio
-                </a>
+                </Link>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/" style={{
+                <Link href="/" style={{
                   color: '#9ca3af',
                   textDecoration: 'none',
                   fontSize: '14px',
@@ -174,10 +175,10 @@ const Footer: React.FC = () => {
                 }} onMouseEnter={(e) => e.currentTarget.style.color = '#8b5cf6'}
                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}>
                   Marketplace
-                </a>
+                </Link>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/" style={{
+                <Link href="/" style={{
                   color: '#9ca3af',
                   textDecoration: 'none',
                   fontSize: '14px',
@@ -185,7 +186,7 @@ const Footer: React.FC = () => {
                 }} onMouseEnter={(e) => e.currentTarget.style.color = '#8b5cf6'}
                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}>
                   NFT Minting
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -205,17 +206,17 @@ const Footer: React.FC = () => {
             <p style={{ margin: '0.25rem 0' }}>Registered in England and Wales • Company No. 16735102</p>
             <p style={{ margin: '0.25rem 0' }}>Built on Bitcoin SV blockchain</p>
             <p style={{ margin: '0.5rem 0' }}>
-              <a href="/terms" style={{
+              <Link href="/terms" style={{
                 color: '#9ca3af',
                 textDecoration: 'none',
                 fontSize: '12px'
-              }}>Terms of Service</a>
+              }}>Terms of Service</Link>
               <span style={{ margin: '0 0.5rem', color: '#6b7280' }}>•</span>
-              <a href="/privacy" style={{
+              <Link href="/privacy" style={{
                 color: '#9ca3af',
                 textDecoration: 'none',
                 fontSize: '12px'
-              }}>Privacy Policy</a>
+              }}>Privacy Policy</Link>
             </p>
           </div>
         </div>

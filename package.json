@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "kill:6000": "lsof -ti:3000 | xargs kill -9",
     "kill:3000": "lsof -ti:3000 | xargs kill -9",
     "kill:dev": "lsof -ti:3000 | xargs kill -9 && lsof -ti:3001 | xargs kill -9",
@@ -53,5 +53,9 @@
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.1.6"
   }
 }
